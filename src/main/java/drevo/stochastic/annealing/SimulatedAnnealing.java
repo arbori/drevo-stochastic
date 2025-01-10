@@ -77,14 +77,17 @@ public class SimulatedAnnealing {
     }
     
     public static void optimize(AnnealingContext ctx, AnnealingFunction best) {
-        ThreadLocalRandom rand = ThreadLocalRandom.current();
+        if(!best.isValid()) {
+            throw new IllegalArgumentException("The solution candidate sent to cooling process is invalid.");
+        }
 
-        double delta;
-        double probability;
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
 
         AnnealingFunction last = best.copy();
         double initialEnergy = ctx.problemType().valueOf() * last.compute();
         double finalEnergy = 0.0;
+        double delta;
+        double probability;
 
         // Calculate the deadline
         long endTime = System.currentTimeMillis() + ctx.deadline() * 1000;
@@ -110,8 +113,6 @@ public class SimulatedAnnealing {
                 if ((delta <= 0 || rand.nextDouble() < probability) && last.isValid()) {
                     initialEnergy = finalEnergy;
                     best.assign(last);
-                } else {
-                    finalEnergy = initialEnergy;
                 }
             }
         }
