@@ -12,7 +12,7 @@ import drevo.stochastic.ProblemType;
 /**
  * Unit test for simple App.
  */
-class MultimodalFunctionsTest {
+class MultimodalFunctionTest {
 
     class SinXFunction implements AnnealingFunction {
         private double x = 0;

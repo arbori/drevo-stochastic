@@ -108,10 +108,8 @@ public class SimulatedAnnealing {
 
                 // Check whether to accept the new configuration
                 if ((delta <= 0 || rand.nextDouble() < probability) && last.isValid()) {
-                    if (delta != 0) {
-                        initialEnergy = finalEnergy;
-                        best.assign(last);
-                    }
+                    initialEnergy = finalEnergy;
+                    best.assign(last);
                 } else {
                     finalEnergy = initialEnergy;
                 }

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import drevo.stochastic.ProblemType;
 
-class StepFunctionsTest {
+class StepFunctionTest {
     class StepFunction implements AnnealingFunction {
         private double x = Math.random() * 10 - 5;
     
