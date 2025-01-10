@@ -23,6 +23,9 @@ class MixedIntegerFunctionTest {
         private double restrition;
 
         public KnapsackFunction(List<Double> v, List<Double> w, double penalty, double restrition) {
+            if(v.size() <= 0 || w.size() <= 0) {
+                throw new IllegalArgumentException("Dimention of values and weight must be positive");
+            }
             if(v.size() != w.size()) {
                 throw new IllegalArgumentException("Dimention of values and weight must be equals");
             }
