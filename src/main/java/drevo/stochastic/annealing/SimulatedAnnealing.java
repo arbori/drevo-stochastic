@@ -58,7 +58,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * internaly the representation of the model. The compute() method compute the value of the internal state, 
  * the represents a point in the domine of objective function, in this case sin(x). The reconfigure() method
  * change the internal state trying explore domine space to find a beter solution. The assign(AnnealingFunction f)
- * method set the internal state of the model with the state of other with the same implementation. TheisValid()
+ * method set the internal state of the model with the state of other with the same implementation. The isValid()
  * method check if the state is valid, that is, if the point represented by the state is part of domine function.
  * Finally, copy() method create other hinstance.
  * 
@@ -69,23 +69,24 @@ import java.util.concurrent.ThreadLocalRandom;
  * public AnnealingContext(ProblemType problemType) {...}
  * public AnnealingContext(double initialTemperature, double finalTemperature, double coolingRate, int steps, long deadline, ProblemType problemType) {...}
  * 
- * With these two objects, it is enoght to call: SimulatedAnnealing.optimize(AnnealingContext ctx, AnnealingFunction best); In the end of execution 
- * the internal state of best object should be optimum, minimum or maximum, depending on the type of the problem. 
+ * With these two objects, it is enoght to call: SimulatedAnnealing.optimize(AnnealingContext ctx, AnnealingFunction function); In the end of execution 
+ * a new AnnealingFunction is returned and its internal state is the solution founded, the optimum point, minimum or maximum, depending on the type of the problem. 
  */
 public class SimulatedAnnealing {
     private SimulatedAnnealing() {
     }
     
-    public static void optimize(AnnealingContext ctx, AnnealingFunction best) {
-        if(!best.isValid()) {
+    public static AnnealingFunction optimize(AnnealingContext ctx, AnnealingFunction function) {
+        if(!function.isValid()) {
             throw new IllegalArgumentException("The solution candidate sent to cooling process is invalid.");
         }
 
         ThreadLocalRandom rand = ThreadLocalRandom.current();
 
-        AnnealingFunction last = best.copy();
-        double initialEnergy = ctx.problemType().valueOf() * last.compute();
-        double finalEnergy = 0.0;
+        AnnealingFunction best = function.copy();
+        AnnealingFunction last = function.copy();
+        double initialEnergy;
+        double finalEnergy;
         double delta;
         double probability;
 
@@ -96,6 +97,8 @@ public class SimulatedAnnealing {
         for (double temperature = ctx.initialTemperature();
              System.currentTimeMillis() < endTime && temperature > ctx.finalTemperature();
              temperature *= (1 - ctx.coolingRate())) {
+
+            initialEnergy = ctx.problemType().valueOf() * last.compute();
 
             for (int currentStep = ctx.steps(); currentStep > 0; currentStep--) {
                 last.reconfigure();
@@ -120,5 +123,7 @@ public class SimulatedAnnealing {
         if(!best.isValid()) {
             throw new IllegalArgumentException("The founded solution in cooling process is invalid.");
         }
+
+        return best;
     }
 }

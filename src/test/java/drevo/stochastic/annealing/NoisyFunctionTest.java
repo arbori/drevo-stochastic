@@ -6,9 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
-import drevo.stochastic.ProblemType;
-
-class NoisyFunctionTest {
+class NoisyFunctionTest extends BaseFunctionTest {
     class QuadraticNoiseFunction implements AnnealingFunction {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
@@ -60,11 +58,8 @@ class NoisyFunctionTest {
         // Define a simple Function for testing
         QuadraticNoiseFunction function = new QuadraticNoiseFunction();
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
 
         double expectedMinX = 2.0 - function.noise;
         double expectedMaxX = 2.0 + function.noise;
@@ -72,11 +67,11 @@ class NoisyFunctionTest {
         double expectedMax  = +function.noise;
 
         // Assert that we found a reasonable solution
-        double result = function.compute();
-        assertTrue(expectedMin < result && result < expectedMax, 
-            String.format("Result should be close to the minimum - expected: [%.5f, %.5f], result: %.5f", expectedMinX, expectedMaxX, result));
-        assertTrue(expectedMinX < function.getX() && function.getX() < expectedMaxX, 
-            String.format("The x value do not minimize (x - 2)^2 + noise - expectedX: [%.5f, %.5f], x: %.5f", expectedMinX, expectedMaxX, function.getX()));
+        double resultY = result.compute();
+        assertTrue(expectedMin < resultY && resultY < expectedMax, 
+            String.format("Result should be close to the minimum - expected: [%.5f, %.5f], result: %.5f", expectedMinX, expectedMaxX, resultY));
+        assertTrue(expectedMinX < result.x && result.x < expectedMaxX, 
+            String.format("The x value do not minimize (x - 2)^2 + noise - expectedX: [%.5f, %.5f], x: %.5f", expectedMinX, expectedMaxX, result.x));
     }
 
     @Test
@@ -84,11 +79,8 @@ class NoisyFunctionTest {
         // Define a simple Function for testing
         QuadraticNoiseFunction function = new QuadraticNoiseFunction();
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(10000, 0.1, 0.01, 1000, 1500, ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
 
         double expectedMinX = 2.0 - function.noise;
         double expectedMaxX = 2.0 + function.noise;
@@ -96,10 +88,10 @@ class NoisyFunctionTest {
         double expectedMax  = +function.noise;
 
         // Assert that we found a reasonable solution
-        double result = function.compute();
-        assertTrue(expectedMin < result && result < expectedMax, 
-            String.format("Result should be close to the minimum - expected: [%.5f, %.5f], result: %.5f", expectedMinX, expectedMaxX, result));
-        assertTrue(expectedMinX < function.getX() && function.getX() < expectedMaxX, 
-            String.format("The x value do not minimize (x - 2)^2 + noise - expectedX: [%.5f, %.5f], x: %.5f", expectedMinX, expectedMaxX, function.getX()));
+        double resultY = result.compute();
+        assertTrue(expectedMin < resultY && resultY < expectedMax, 
+            String.format("Result should be close to the minimum - expected: [%.5f, %.5f], result: %.5f", expectedMinX, expectedMaxX, result.x));
+        assertTrue(expectedMinX < result.x && result.x < expectedMaxX, 
+            String.format("The x value do not minimize (x - 2)^2 + noise - expectedX: [%.5f, %.5f], x: %.5f", expectedMinX, expectedMaxX, result.x));
     }
 }

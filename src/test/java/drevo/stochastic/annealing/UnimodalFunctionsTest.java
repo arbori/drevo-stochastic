@@ -6,9 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
-import drevo.stochastic.ProblemType;
-
-class UnimodalFunctionsTest {
+class UnimodalFunctionsTest extends BaseFunctionTest {
     class QuadraticFunction implements AnnealingFunction {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
@@ -56,19 +54,15 @@ class UnimodalFunctionsTest {
         // Define a simple Function for testing
         QuadraticFunction function = new QuadraticFunction();
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
 
         double expectedX = 2.0;
         double expected  = 0.0;
 
         // Assert that we found a reasonable solution
-        double result = function.compute();
-        assertTrue(Math.abs(expected - result) < 10e-5, "Result should be close to the minimum");
-        assertTrue(Math.abs(function.compute(expectedX) - result) < 10e-5, "The x value do not minimize (x - 2)^2");
+        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't minimize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
+        assertTrue(Math.abs(expectedX - result.x) < 10e-2, String.format("The x value do not minimize (x - 2)^2. expectedX: %.5f, result.x: %.5f", expectedX, result.x));
     }
 
     @Test
@@ -76,18 +70,14 @@ class UnimodalFunctionsTest {
         // Define a simple Function for testing
         QuadraticFunction function = new QuadraticFunction();
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(10000, 0.1, 0.01, 1000, 1500, ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
 
         double expectedX = 2.0;
         double expected  = 0.0;
 
         // Assert that we found a reasonable solution
-        double result = function.compute();
-        assertTrue(Math.abs(expected - result) < 10e-5, "Result should be close to the minimum");
-        assertTrue(Math.abs(function.compute(expectedX) - result) < 10e-5, "The x value do not minimize (x - 2)^2");
+        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't minimize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
+        assertTrue(Math.abs(expectedX - result.x) < 10e-2, String.format("The x value do not minimize (x - 2)^2. expectedX: %.5f, result.x: %.5f", expectedX, result.x));
     }
 }

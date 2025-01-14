@@ -36,7 +36,7 @@ public class AnnealingContext {
     private double maximumEnergy = 0;
 
     public AnnealingContext(ProblemType problemType) {
-        this(10000, 0.1, 0.01, 15000, 300, problemType);
+        this(10000, 0.1, 0.01, 150000, 300, problemType);
     }
 
     public AnnealingContext(double initialTemperature, double finalTemperature, double coolingRate, int steps, long deadline, ProblemType problemType) {

@@ -8,26 +8,31 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
-import drevo.stochastic.ProblemType;
+class SampleFunctionTest extends BaseFunctionTest {
+    private static final int BOUND = 1000;
 
-class SampleFunctionTest {
     private ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
     class SampleFunction implements AnnealingFunction {
-        private int dimention;
+        private int size;
         private List<Double> x;
         private int index;
+        private double bound;
 
-        public SampleFunction(int dimention, double bound) {
-            if(dimention <= 0) {
+        public SampleFunction(int size, double bound) {
+            if(size <= 0) {
                 throw new IllegalArgumentException("Dimention of values must be positive");
             }
 
-            this.dimention = dimention;
+            this.size = size;
 
-            this.x = new ArrayList<>(this.dimention);
+            if(bound <= 0.0) {
+                bound = 20.0;
+            }
 
-            for(int i = 0; i < this.dimention; i++) {
+            this.x = new ArrayList<>(this.size);
+
+            for(int i = 0; i < this.size; i++) {
                 this.x.add(rnd.nextDouble(bound));
             }
 
@@ -50,8 +55,8 @@ class SampleFunctionTest {
     
         @Override
         public void assign(AnnealingFunction f) {
-            if (f instanceof SampleFunction sampleFunction && sampleFunction.dimention == this.dimention) {
-                for(int i = 0; i < dimention; i++) {
+            if (f instanceof SampleFunction sampleFunction && sampleFunction.size == this.size) {
+                for(int i = 0; i < size; i++) {
                     x.set(i, sampleFunction.x.get(i));
                 }
 
@@ -66,7 +71,7 @@ class SampleFunctionTest {
     
         @Override
         public AnnealingFunction copy() {
-            SampleFunction clone = new SampleFunction(this.dimention, 20.0);
+            SampleFunction clone = new SampleFunction(this.size, this.bound);
             
             clone.assign(this);
 
@@ -76,19 +81,15 @@ class SampleFunctionTest {
 
     @Test
     void maximumOptimumDefaultTest() {
-        int dimention = rnd.nextInt(10000);
+        int dimention = rnd.nextInt(BOUND);
         double bound = 50.0;
 
         SampleFunction function = new SampleFunction(dimention, bound);
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(ProblemType.MAXIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext, function);
 
         double expectedResult = Double.NEGATIVE_INFINITY;
-        double result = function.compute();
 
         int indexMaximum = -1;
 
@@ -99,25 +100,21 @@ class SampleFunctionTest {
             }
         }
 
-        assertEquals(indexMaximum, function.index, String.format("indexMaximum: %d, function.index: %d", indexMaximum, function.index));
-        assertEquals(expectedResult, result, String.format("expectedResult: %f, result: %f", expectedResult, result));
+        assertEquals(indexMaximum, result.index, String.format("indexMaximum: %d => value: %.5f, function.index: %d => value: %.5f", indexMaximum, result.x.get(indexMaximum), result.index, result.compute()));
+        assertEquals(expectedResult, result.x.get(result.index), String.format("expectedResult: %f, result: %f", expectedResult, result.x.get(result.index)));
     }
 
     @Test
     void maximumOptimumTest() {
-        int dimention = rnd.nextInt(10000);
+        int dimention = rnd.nextInt(BOUND);
         double bound = 50.0;
 
         SampleFunction function = new SampleFunction(dimention, bound);
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(10000, 0.1, 0.01, 1000, 1500, ProblemType.MAXIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
 
         double expectedResult = Double.NEGATIVE_INFINITY;
-        double result = function.compute();
 
         int indexMaximum = -1;
 
@@ -128,8 +125,58 @@ class SampleFunctionTest {
             }
         }
 
-        assertEquals(indexMaximum, function.index, String.format("indexMaximum: %d, function.index: %d", indexMaximum, function.index));
-        assertEquals(expectedResult, result, String.format("expectedResult: %f, result: %f", expectedResult, result));
+        assertEquals(indexMaximum, result.index, String.format("indexMaximum: %d => value: %.5f, function.index: %d => value: %.5f", indexMaximum, result.x.get(indexMaximum), result.index, result.compute()));
+        assertEquals(expectedResult, result.compute(), String.format("expectedResult: %f, result: %f", expectedResult, result.compute()));
+    }
+
+    @Test
+    void minimumOptimumDefaultTest() {
+        int dimention = rnd.nextInt(BOUND);
+        double bound = 50.0;
+
+        SampleFunction function = new SampleFunction(dimention, bound);
+
+        // Run Simulated Annealing
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+
+        double expectedResult = Double.POSITIVE_INFINITY;
+
+        int indexMinimum = -1;
+
+        for(int i = 0; i < function.x.size(); i++) {
+            if(expectedResult > function.x.get(i)) {
+                indexMinimum = i;
+                expectedResult = function.x.get(i);
+            }
+        }
+
+        assertEquals(indexMinimum, result.index, String.format("indexMinimum: %d => value: %.5f, function.index: %d => value: %.5f", indexMinimum, result.x.get(indexMinimum), result.index, result.compute()));
+        assertEquals(expectedResult, result.compute(), String.format("expectedResult: %f, result: %f", expectedResult, result.compute()));
+    }
+
+    @Test
+    void minimumOptimumTest() {
+        int dimention = rnd.nextInt(BOUND);
+        double bound = 50.0;
+
+        SampleFunction function = new SampleFunction(dimention, bound);
+
+        // Run Simulated Annealing
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+
+        double expectedResult = Double.POSITIVE_INFINITY;
+
+        int indexMinimum = -1;
+
+        for(int i = 0; i < function.x.size(); i++) {
+            if(expectedResult > function.x.get(i)) {
+                indexMinimum = i;
+                expectedResult = function.x.get(i);
+            }
+        }
+
+        assertEquals(indexMinimum, result.index, String.format("indexMinimum: %d => value: %.5f, function.index: %d => value: %.5f", indexMinimum, result.x.get(indexMinimum), result.index, result.compute()));
+        assertEquals(expectedResult, result.compute(), String.format("expectedResult: %f, result: %f", expectedResult, result.compute()));
     }
 }
 

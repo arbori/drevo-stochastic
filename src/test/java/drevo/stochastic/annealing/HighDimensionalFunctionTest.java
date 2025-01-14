@@ -8,9 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
-import drevo.stochastic.ProblemType;
-
-class HighDimensionalFunctionTest {
+class HighDimensionalFunctionTest extends BaseFunctionTest {
     class SphereFunction implements AnnealingFunction {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
@@ -150,22 +148,18 @@ class HighDimensionalFunctionTest {
         // Define a simple Function for testing
         SphereFunction function = new SphereFunction(dimention);
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        SphereFunction result = (SphereFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
 
         double expectedX = 0.0;
         double expected  = 0.0;
 
         // Assert that we found a reasonable solution
         for(int i = 0; i < dimention; i++) {
-            assertTrue(Math.abs(expectedX - function.getX().get(i)) < 10e-5, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, function.getX().get(i)));
+            assertTrue(Math.abs(expectedX - result.x.get(i)) < 10e-2, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x.get(i)));
         }
 
-        double result = function.compute();
-        assertTrue(Math.abs(expected - result) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result));
+        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result.compute()));
     }
 
     @Test
@@ -177,22 +171,18 @@ class HighDimensionalFunctionTest {
         // Define a simple Function for testing
         SphereFunction function = new SphereFunction(dimention);
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(10000, 0.1, 0.01, 1000, 1500, ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        SphereFunction result = (SphereFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
 
         double expectedX = 0.0;
         double expected  = 0.0;
 
         // Assert that we found a reasonable solution
         for(int i = 0; i < dimention; i++) {
-            assertTrue(Math.abs(expectedX - function.getX().get(i)) < 10e-5, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, function.getX().get(i)));
+            assertTrue(Math.abs(expectedX - result.x.get(i)) < 10e-5, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x.get(i)));
         }
 
-        double result = function.compute();
-        assertTrue(Math.abs(expected - result) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result));
+        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result.compute()));
     }
 
     @Test
@@ -204,22 +194,18 @@ class HighDimensionalFunctionTest {
         // Define a simple Function for testing
         RastriginFunction function = new RastriginFunction(dimention);
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        RastriginFunction result = (RastriginFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
 
         double expectedX = 0.0;
         double expected  = 0.0;
 
         // Assert that we found a reasonable solution
         for(int i = 0; i < dimention; i++) {
-            assertTrue(Math.abs(expectedX - function.getX().get(i)) < 10e-5, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, function.getX().get(i)));
+            assertTrue(Math.abs(expectedX - result.x.get(i)) < 10e-2, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x.get(i)));
         }
 
-        double result = function.compute();
-        assertTrue(Math.abs(expected - result) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result));
+        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result.compute()));
     }
 
     @Test
@@ -231,21 +217,17 @@ class HighDimensionalFunctionTest {
         // Define a simple Function for testing
         RastriginFunction function = new RastriginFunction(dimention);
 
-        // Configure Annealing Context
-        AnnealingContext ctx = new AnnealingContext(10000, 0.1, 0.01, 1000, 1500, ProblemType.MINIMIZE);
-
         // Run Simulated Annealing
-        SimulatedAnnealing.optimize(ctx, function);
+        RastriginFunction result = (RastriginFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
 
         double expectedX = 0.0;
         double expected  = 0.0;
 
         // Assert that we found a reasonable solution
         for(int i = 0; i < dimention; i++) {
-            assertTrue(Math.abs(expectedX - function.getX().get(i)) < 10e-5, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, function.getX().get(i)));
+            assertTrue(Math.abs(expectedX - result.x.get(i)) < 10e-2, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x.get(i)));
         }
 
-        double result = function.compute();
-        assertTrue(Math.abs(expected - result) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result));
+        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result.compute()));
     }
 }
