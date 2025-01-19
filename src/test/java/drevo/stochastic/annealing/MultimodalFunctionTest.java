@@ -7,6 +7,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 /**
  * Unit test for simple App.
  */
@@ -98,7 +101,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         SinXFunction function = new SinXFunction();
 
         // Run Simulated Annealing
-        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 3.0*Math.PI/2.0;
         double expected = -1.0;
@@ -114,7 +124,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         SinXFunction function = new SinXFunction();
 
         // Run Simulated Annealing
-        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 3.0*Math.PI/2.0;
         double expected = -1.0;
@@ -130,7 +147,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         SinXFunction function = new SinXFunction();
 
         // Run Simulated Annealing
-        SinXFunction result = (SinXFunction ) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext, function);
+        SinXFunction result = (SinXFunction ) SimulatedAnnealing.optimize(
+            maximizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = Math.PI/2.0;
         double expected = 1.0;
@@ -146,7 +170,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         SinXFunction function = new SinXFunction();
 
         // Run Simulated Annealing
-        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
+        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(
+            maximizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = Math.PI/2.0;
         double expected = 1.0;
@@ -162,7 +193,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         Cos5xFunction function = new Cos5xFunction();
 
         // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         List<Double> expectedX = Arrays.asList( Math.PI/5.0, 3.0*Math.PI/5.0, Math.PI, 7.0*Math.PI/5.0, 9.0*Math.PI/5.0 );
         double  expected = -1.0;
@@ -183,7 +221,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         Cos5xFunction function = new Cos5xFunction();
 
         // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         List<Double> expectedX = Arrays.asList( Math.PI/5.0, 3.0*Math.PI/5.0, Math.PI, 7.0*Math.PI/5.0, 9.0*Math.PI/5.0 );
         double  expected = -1.0;
@@ -204,7 +249,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         Cos5xFunction function = new Cos5xFunction();
 
         // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext, function);
+        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(
+            maximizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         List<Double> expectedX = Arrays.asList( 0.0, 2.0*Math.PI/5.0, 4.0*Math.PI/5.0, 6.0*Math.PI/5.0, 8.0*Math.PI/5.0 );
         double expected = 1.0;
@@ -225,7 +277,14 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         Cos5xFunction function = new Cos5xFunction();
 
         // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
+        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(
+            maximizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         List<Double> expectedX = Arrays.asList( 0.0, 2.0*Math.PI/5.0, 4.0*Math.PI/5.0, 6.0*Math.PI/5.0, 8.0*Math.PI/5.0 );
         double expected = 1.0;

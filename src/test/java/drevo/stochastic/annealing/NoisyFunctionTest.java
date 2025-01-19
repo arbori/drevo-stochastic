@@ -6,6 +6,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 class NoisyFunctionTest extends BaseFunctionTest {
     class QuadraticNoiseFunction implements AnnealingFunction {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
@@ -59,7 +62,14 @@ class NoisyFunctionTest extends BaseFunctionTest {
         QuadraticNoiseFunction function = new QuadraticNoiseFunction();
 
         // Run Simulated Annealing
-        QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedMinX = 2.0 - function.noise;
         double expectedMaxX = 2.0 + function.noise;
@@ -80,7 +90,14 @@ class NoisyFunctionTest extends BaseFunctionTest {
         QuadraticNoiseFunction function = new QuadraticNoiseFunction();
 
         // Run Simulated Annealing
-        QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedMinX = 2.0 - function.noise;
         double expectedMaxX = 2.0 + function.noise;

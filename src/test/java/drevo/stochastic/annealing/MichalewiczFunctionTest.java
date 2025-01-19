@@ -7,6 +7,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 class MichalewiczFunctionTest extends BaseFunctionTest {
     class MichalewiczFunction implements AnnealingFunction {
         private static final int DIMENSIONS = 5; // Number of dimensions
@@ -90,8 +93,14 @@ class MichalewiczFunctionTest extends BaseFunctionTest {
         MichalewiczFunction function = new MichalewiczFunction();
 
         // Run Simulated Annealing with the default context
-        MichalewiczFunction result = (MichalewiczFunction) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext,
-                function);
+        MichalewiczFunction result = (MichalewiczFunction) SimulatedAnnealing.optimize(
+            maximizeDefaultAnnealingContext,
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedValueThreshold = -1.0; // Known approximate maximum value for 5D Michalewicz function
         double computedValue = -result.compute(); // Negated since the function is inverted for minimization
@@ -108,8 +117,14 @@ class MichalewiczFunctionTest extends BaseFunctionTest {
         MichalewiczFunction function = new MichalewiczFunction();
 
         // Run Simulated Annealing with a custom context
-        MichalewiczFunction result = (MichalewiczFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext,
-                function);
+        MichalewiczFunction result = (MichalewiczFunction) SimulatedAnnealing.optimize(
+            maximizeAnnealingContext,
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedValueThreshold = -1.0; // Known approximate maximum value for 5D Michalewicz function
         double computedValue = -result.compute(); // Negated since the function is inverted for minimization

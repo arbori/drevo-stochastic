@@ -9,6 +9,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 class MixedIntegerFunctionTest extends BaseFunctionTest {
     private ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
@@ -208,7 +211,14 @@ class MixedIntegerFunctionTest extends BaseFunctionTest {
         KnapsackFunction function = new KnapsackFunction(v, w, penalty, restrition);
 
         // Run Simulated Annealing
-        KnapsackFunction result = (KnapsackFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
+        KnapsackFunction result = (KnapsackFunction) SimulatedAnnealing.optimize(
+            maximizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedResult = maximumValue(v, w, restrition);
 

@@ -8,6 +8,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 class HighDimensionalFunctionTest extends BaseFunctionTest {
     class SphereFunction implements AnnealingFunction {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
@@ -149,7 +152,14 @@ class HighDimensionalFunctionTest extends BaseFunctionTest {
         SphereFunction function = new SphereFunction(dimention);
 
         // Run Simulated Annealing
-        SphereFunction result = (SphereFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        SphereFunction result = (SphereFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 0.0;
         double expected  = 0.0;
@@ -172,7 +182,14 @@ class HighDimensionalFunctionTest extends BaseFunctionTest {
         SphereFunction function = new SphereFunction(dimention);
 
         // Run Simulated Annealing
-        SphereFunction result = (SphereFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        SphereFunction result = (SphereFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 0.0;
         double expected  = 0.0;
@@ -195,7 +212,14 @@ class HighDimensionalFunctionTest extends BaseFunctionTest {
         RastriginFunction function = new RastriginFunction(dimention);
 
         // Run Simulated Annealing
-        RastriginFunction result = (RastriginFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        RastriginFunction result = (RastriginFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 0.0;
         double expected  = 0.0;
@@ -218,7 +242,14 @@ class HighDimensionalFunctionTest extends BaseFunctionTest {
         RastriginFunction function = new RastriginFunction(dimention);
 
         // Run Simulated Annealing
-        RastriginFunction result = (RastriginFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        RastriginFunction result = (RastriginFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 0.0;
         double expected  = 0.0;

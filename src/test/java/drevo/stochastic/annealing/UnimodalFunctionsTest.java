@@ -6,6 +6,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 class UnimodalFunctionsTest extends BaseFunctionTest {
     class QuadraticFunction implements AnnealingFunction {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
@@ -55,7 +58,14 @@ class UnimodalFunctionsTest extends BaseFunctionTest {
         QuadraticFunction function = new QuadraticFunction();
 
         // Run Simulated Annealing
-        QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 2.0;
         double expected  = 0.0;
@@ -71,7 +81,14 @@ class UnimodalFunctionsTest extends BaseFunctionTest {
         QuadraticFunction function = new QuadraticFunction();
 
         // Run Simulated Annealing
-        QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 2.0;
         double expected  = 0.0;

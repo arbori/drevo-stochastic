@@ -2,6 +2,9 @@ package drevo.stochastic.annealing;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 /**
  * This class is an implementation of Simulated Annealing Algorithm that simulate a cooling process as a metaphor 
  * for the search good solution of a problem.
@@ -73,22 +76,36 @@ import java.util.concurrent.ThreadLocalRandom;
  * a new AnnealingFunction is returned and its internal state is the solution founded, the optimum point, minimum or maximum, depending on the type of the problem. 
  */
 public class SimulatedAnnealing {
+    private static final double BOLTZMANN_CONSTANT = 8.6173432e-5;
+
     private SimulatedAnnealing() {
     }
     
-    public static AnnealingFunction optimize(AnnealingContext ctx, AnnealingFunction function) {
+    public static AnnealingFunction optimize(AnnealingContext ctx, AnnealingFunction function, AnnealingListener listener) {
+        Thread listenerThread = new Thread(listener);
+        listenerThread.start();
+
+        if(listener != null) listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, false, 
+            String.format("Start cooling process with context: %s", ctx)));
+
         if(!function.isValid()) {
-            throw new IllegalArgumentException("The solution candidate sent to cooling process is invalid.");
+            if(listener != null) listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, false, 
+                "The solution candidate sent to cooling process is invalid."));
+
+            return function.copy();
         }
 
         ThreadLocalRandom rand = ThreadLocalRandom.current();
 
         AnnealingFunction best = function.copy();
         AnnealingFunction last = function.copy();
-        double initialEnergy;
-        double finalEnergy;
-        double delta;
-        double probability;
+        double initialEnergy = 0;
+        double finalEnergy = 0;
+        double delta = 0;
+        double probability = 0;
+
+        if(listener != null) listener.onStateChange(new AnnealingState(0, initialEnergy, finalEnergy, delta, probability, 0, false, 
+            String.format("Start with value: %.5f", best.compute())));
 
         // Calculate the deadline
         long endTime = System.currentTimeMillis() + ctx.deadline() * 1000;
@@ -110,18 +127,43 @@ public class SimulatedAnnealing {
                 delta = finalEnergy - initialEnergy;
 
                 // Calculate Boltzmann probability
-                probability = Math.exp((-1 * delta) / (ctx.boltzmannConstant() * temperature));
+                probability = Math.exp((-1 * delta) / (BOLTZMANN_CONSTANT * temperature));
 
                 // Check whether to accept the new configuration
                 if ((delta <= 0 || rand.nextDouble() < probability) && last.isValid()) {
+                    if(listener != null) {
+                        listener.onStateChange(new AnnealingState(temperature, initialEnergy, finalEnergy, delta, probability, currentStep, true, "Accepted configuration"));
+                    }
+
                     initialEnergy = finalEnergy;
                     best.assign(last);
+                }
+                else {
+                    if(listener != null) {
+                        listener.onStateChange(new AnnealingState(temperature, initialEnergy, finalEnergy, delta, probability, currentStep, true, "Not accepted configuration"));
+                    }
                 }
             }
         }
 
-        if(!best.isValid()) {
-            throw new IllegalArgumentException("The founded solution in cooling process is invalid.");
+        if(!best.isValid() && listener != null) {
+            listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, false, 
+                "The founded solution in cooling process is invalid."));
+        }
+
+        if(listener != null) {
+            listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, false, 
+               String.format("Finish with value: %.5f", best.compute())));
+
+            listener.finish();
+        }
+
+        listener.finish();
+
+        try {
+            listenerThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         return best;

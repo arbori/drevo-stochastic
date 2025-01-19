@@ -8,6 +8,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 class SampleFunctionTest extends BaseFunctionTest {
     private static final int BOUND = 1000;
 
@@ -87,7 +90,16 @@ class SampleFunctionTest extends BaseFunctionTest {
         SampleFunction function = new SampleFunction(dimention, bound);
 
         // Run Simulated Annealing
-        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext, function);
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(
+            maximizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    if(state.currentStep() == 0) {
+                        System.out.println(state);
+                    }
+                }
+            });
 
         double expectedResult = Double.NEGATIVE_INFINITY;
 
@@ -112,7 +124,16 @@ class SampleFunctionTest extends BaseFunctionTest {
         SampleFunction function = new SampleFunction(dimention, bound);
 
         // Run Simulated Annealing
-        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(
+            maximizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    if(state.currentStep() == 0) {
+                        System.out.println(state);
+                    }
+                }
+            });
 
         double expectedResult = Double.NEGATIVE_INFINITY;
 
@@ -137,7 +158,16 @@ class SampleFunctionTest extends BaseFunctionTest {
         SampleFunction function = new SampleFunction(dimention, bound);
 
         // Run Simulated Annealing
-        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    if(state.currentStep() == 0) {
+                        System.out.println(state);
+                    }
+                }
+            });
 
         double expectedResult = Double.POSITIVE_INFINITY;
 
@@ -162,7 +192,16 @@ class SampleFunctionTest extends BaseFunctionTest {
         SampleFunction function = new SampleFunction(dimention, bound);
 
         // Run Simulated Annealing
-        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        SampleFunction result = (SampleFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    if(state.currentStep() == 0) {
+                        System.out.println(state);
+                    }
+                }
+            });
 
         double expectedResult = Double.POSITIVE_INFINITY;
 

@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+
 class StepFunctionTest extends BaseFunctionTest {
     class StepFunction implements AnnealingFunction {
         private double x = Math.random() * 10 - 5;
@@ -54,7 +57,14 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction function = new StepFunction();
 
         // Run Simulated Annealing
-        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
+            minimizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 2.0;
         double expected  = -1.0;
@@ -70,7 +80,14 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction function = new StepFunction();
 
         // Run Simulated Annealing
-        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
+            minimizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 2.0;
         double expected  = -1.0;
@@ -86,7 +103,14 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction function = new StepFunction();
 
         // Run Simulated Annealing
-        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext, function);
+        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
+            maximizeDefaultAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 1.0;
         double expected  = 1.0;
@@ -102,7 +126,14 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction function = new StepFunction();
 
         // Run Simulated Annealing
-        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
+        StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
+            maximizeAnnealingContext, 
+            function,
+            new AnnealingListener() {
+                protected void handleStateChange(AnnealingState state) {
+                    System.out.println(state);
+                }
+            });
 
         double expectedX = 1.0;
         double expected  = 1.0;
