@@ -2,241 +2,111 @@ package drevo.stochastic.annealing;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
+
+import drevo.stochastic.ProblemType;
 
 /**
  * Unit test for simple App.
  */
 class MultimodalFunctionTest extends BaseFunctionTest {
+    private static final Logger logger = LoggerFactory.getLogger(MultimodalFunctionTest.class);
 
-    class SinXFunction implements AnnealingFunction {
-        private double x = 0;
+    private static final double PRECISION = 10e-2;
+
+    public double multimodalDerivative(double t) {
+        return -5.0*(t - 2)*(t - 2) * Math.sin(5*t - 2) + 2*t * Math.cos(5*t - 2) - 4*Math.cos(5*t - 2);
+    }
+
+    class MultimodalFunction implements AnnealingFunction {
+        public final Random rnd = ThreadLocalRandom.current();
+
+        public final double minXDomine = -0.54248;
+        public final double maxXDomine = +4.48407;
+        public final double minX       = -0.26330;
+        public final double minY       = -5.04437;
+        public final double maxX       = +4.20579;
+        public final double maxY       = +4.78743;
+
+        private double x = minXDomine + rnd.nextDouble() * (maxXDomine - minXDomine);
     
-        public double getX() {
-            return x;
-        }
-
         @Override
         public double compute() {
-            return Math.sin(x);
+            return compute(x);
         }
-        public double compute(double value) {
-            return Math.sin(value);
+        public double compute(double t) {
+            return (t-2)*(t-2) * Math.cos(5*t - 2);
         }
     
         @Override
         public void reconfigure() {
-            x = Math.random() * 2* Math.PI; // Adjust x randomly within [0, 2pi]
+            x = rnd.nextDouble() * (maxXDomine - minXDomine) + minXDomine;
         }
     
         @Override
         public void assign(AnnealingFunction f) {
-            if (f instanceof SinXFunction) {
-                this.x = ((SinXFunction) f).x;
+            if (f instanceof MultimodalFunction) {
+                this.x = ((MultimodalFunction) f).x;
             }
         }
     
         @Override
         public boolean isValid() {
-            return 0.0 <= x && x <= 2*Math.PI; // Valid domain: [0, 2pi]
+            return minXDomine <= x && x <= maxXDomine;
         }
     
         @Override
         public AnnealingFunction copy() {
-            SinXFunction clone = new SinXFunction();
+            MultimodalFunction clone = new MultimodalFunction();
             clone.x = this.x;
             return clone;
         }
     }
 
-    class Cos5xFunction implements AnnealingFunction {
-        private double x = Math.random() * 2* Math.PI;
-    
-        public double getX() {
-            return x;
-        }
-        
-        @Override
-        public double compute() {
-            return Math.cos(5*x);
-        }
-        public double compute(double value) {
-            return Math.cos(5*value);
-        }
-    
-        @Override
-        public void reconfigure() {
-            x = Math.random() * 2* Math.PI; // Adjust x randomly within [0, 2pi]
-        }
-    
-        @Override
-        public void assign(AnnealingFunction f) {
-            if (f instanceof Cos5xFunction) {
-                this.x = ((Cos5xFunction) f).x;
-            }
-        }
-    
-        @Override
-        public boolean isValid() {
-            return 0.0 <= x && x <= 2*Math.PI; // Valid domain: [0, 2pi]
-        }
-    
-        @Override
-        public AnnealingFunction copy() {
-            Cos5xFunction clone = new Cos5xFunction();
-            clone.x = this.x;
-            return clone;
-        }
-    }
-    
     @Test
-    void minimizeSinXDefaultTest() {
+    void minimizeMultimodalFunctionTest() {
         // Define a simple Function for testing
-        SinXFunction function = new SinXFunction();
+        MultimodalFunction function = new MultimodalFunction();
+
+        logger.info(() -> String.format("Start x value: %.8f -> f(x) = %.8f.", function.x, function.compute()));
 
         // Run Simulated Annealing
-        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
+        MultimodalFunction result = (MultimodalFunction) SimulatedAnnealing.optimize(
+            new AnnealingContext(100000, 0.001, 0.01, 200_000, 30 * 60 * 60, ProblemType.MINIMIZE), 
+            function);
 
-        double expectedX = 3.0*Math.PI/2.0;
-        double expected = -1.0;
+        logger.info(() -> String.format("Final x value: %.8f -> f(x) = %.8f.", result.x, result.compute()));
 
         // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't minimize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-        assertTrue(Math.abs(expectedX - result.x) < 10e-2, String.format("The x value do not minimize sin(x). expectedX: %.5f, result.x: %.5f", expectedX, result.x));
+        assertTrue(Math.abs(result.minX - result.x) < PRECISION, String.format("The x value didn't minimize function -> x = %.8f and f(x) = %.8f.", 
+            result.x, result.compute()));
+        assertTrue(multimodalDerivative(result.x) < PRECISION, String.format("The derivative is not 0 for x = %.8f -> f'(x) = %.8f.", 
+            result.x, multimodalDerivative(result.x)));
     }
 
     @Test
-    void minimizeSinXTest() {
+    void maximizeMultimodalFunctionTest() {
         // Define a simple Function for testing
-        SinXFunction function = new SinXFunction();
+        MultimodalFunction function = new MultimodalFunction();
+
+        logger.info(() -> String.format("Start x value: %.8f -> f(x) = %.8f.", function.x, function.compute()));
 
         // Run Simulated Annealing
-        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
+        MultimodalFunction result = (MultimodalFunction) SimulatedAnnealing.optimize(
+            new AnnealingContext(100000, 0.001, 0.01, 200_000, 30 * 60 * 60, ProblemType.MAXIMIZE), 
+            function);
 
-        double expectedX = 3.0*Math.PI/2.0;
-        double expected = -1.0;
-
-        // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't minimize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-        assertTrue(Math.abs(expectedX - result.x) < 10e-2, String.format("The x value do not minimize sin(x). expectedX: %.5f, result.x: %.5f", expectedX, result.x));
-    }
-
-    @Test
-    void maximizeSinXDefaultTest() {
-        // Define a simple Function for testing
-        SinXFunction function = new SinXFunction();
-
-        // Run Simulated Annealing
-        SinXFunction result = (SinXFunction ) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext, function);
-
-        double expectedX = Math.PI/2.0;
-        double expected = 1.0;
+        logger.info(() -> String.format("Final x value: %.8f -> f(x) = %.8f.", result.x, result.compute()));
 
         // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't maximize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-        assertTrue(Math.abs(expectedX - result.x) < 10e-2, String.format("The x value do not maximize sin(x). expectedX: %.5f, result.x: %.5f", expectedX, result.x));
-    }
-
-    @Test
-    void maximizeSinXTest() {
-        // Define a simple Function for testing
-        SinXFunction function = new SinXFunction();
-
-        // Run Simulated Annealing
-        SinXFunction result = (SinXFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
-
-        double expectedX = Math.PI/2.0;
-        double expected = 1.0;
-
-        // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't maximize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-        assertTrue(Math.abs(expectedX - result.x) < 10e-2, String.format("The x value do not maximize sin(x). expectedX: %.5f, result.x: %.5f", expectedX, result.x));
-    }
-
-    @Test
-    void minimizeCos5xDefaultTest() {
-        // Define a simple Function for testing
-        Cos5xFunction function = new Cos5xFunction();
-
-        // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(minimizeDefaultAnnealingContext, function);
-
-        List<Double> expectedX = Arrays.asList( Math.PI/5.0, 3.0*Math.PI/5.0, Math.PI, 7.0*Math.PI/5.0, 9.0*Math.PI/5.0 );
-        double  expected = -1.0;
-
-        // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't minimize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-
-        boolean exist = false;
-        for(Double x: expectedX) {
-            exist |= Math.abs(x - result.x) < 10e-2;
-        }
-        assertTrue(exist, String.format("The x value do not minimize cos(5x). result.x: %.5f", result.x));
-    }
-
-    @Test
-    void minimizeCos5xTest() {
-        // Define a simple Function for testing
-        Cos5xFunction function = new Cos5xFunction();
-
-        // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(minimizeAnnealingContext, function);
-
-        List<Double> expectedX = Arrays.asList( Math.PI/5.0, 3.0*Math.PI/5.0, Math.PI, 7.0*Math.PI/5.0, 9.0*Math.PI/5.0 );
-        double  expected = -1.0;
-
-        // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't minimize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-
-        boolean exist = false;
-        for(Double x: expectedX) {
-            exist |= Math.abs(x - result.x) < 10e-2;
-        }
-        assertTrue(exist, String.format("The x value do not minimize cos(5x). result.x: %.5f", result.x));
-    }
-    
-    @Test
-    void maximizeCos5xDefaultTest() {
-        // Define a simple Function for testing
-        Cos5xFunction function = new Cos5xFunction();
-
-        // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(maximizeDefaultAnnealingContext, function);
-
-        List<Double> expectedX = Arrays.asList( 0.0, 2.0*Math.PI/5.0, 4.0*Math.PI/5.0, 6.0*Math.PI/5.0, 8.0*Math.PI/5.0 );
-        double expected = 1.0;
-
-        // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't maximize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-
-        boolean exist = false;
-        for(Double x: expectedX) {
-            exist |= Math.abs(x - result.x) < 10e-2;
-        }
-        assertTrue(exist, String.format("The x value do not maximize cos(5x). result.x: %.5f", result.x));
-    }
-
-    @Test
-    void maximizeCos5xTest() {
-        // Define a simple Function for testing
-        Cos5xFunction function = new Cos5xFunction();
-
-        // Run Simulated Annealing
-        Cos5xFunction result = (Cos5xFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function);
-
-        List<Double> expectedX = Arrays.asList( 0.0, 2.0*Math.PI/5.0, 4.0*Math.PI/5.0, 6.0*Math.PI/5.0, 8.0*Math.PI/5.0 );
-        double expected = 1.0;
-
-        // Assert that we found a reasonable solution
-        assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("It didn't maximize. expected: %.5f, result.compute(): %.5f.", expected, result.compute()));
-
-        boolean exist = false;
-        for(Double x: expectedX) {
-            exist |= Math.abs(x - result.x) < 10e-2;
-        }
-        assertTrue(exist, String.format("The x value do not maximize cos(5x). result.x: %.5f", result.x));
+        assertTrue(Math.abs(result.maxX - result.x) < PRECISION, String.format("The x value didn't maximize function -> x = %.8f and f(x) = %.8f.", 
+            result.x, result.compute()));
+        assertTrue(multimodalDerivative(result.x) < PRECISION, String.format("The derivative is not 0 for x = %.8f -> f'(x) = %.8f.", 
+            result.x, multimodalDerivative(result.x)));
     }
 }
