@@ -84,8 +84,12 @@ public class SimulatedAnnealing {
     }
     
     public static AnnealingFunction optimize(AnnealingContext ctx, AnnealingFunction function, AnnealingListener listener) {
-        Thread listenerThread = new Thread(listener);
-        listenerThread.start();
+        Thread listenerThread = null;
+
+        if(listener != null) {
+            listenerThread = new Thread(listener);
+            listenerThread.start();
+        }
 
         if(listener != null) listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, false, 
             String.format("Start cooling process with context: %s", ctx)));
@@ -134,20 +138,15 @@ public class SimulatedAnnealing {
 
                 // Check whether to accept the new configuration
                 if ((delta <= 0 || rand.nextDouble() < probability) && last.isValid()) {
-                    if(listener != null) {
-                        listener.onStateChange(new AnnealingState(temperature, initialEnergy, finalEnergy, delta, probability, currentStep, true, "Accepted configuration"));
-                    }
-
                     initialEnergy = finalEnergy;
 
                     if((ctx.problemType == ProblemType.MAXIMIZE && bestValue < ctx.problemType().valueOf() * finalEnergy) || (ctx.problemType == ProblemType.MINIMIZE && bestValue > ctx.problemType().valueOf() * finalEnergy)) {
+                        if(listener != null) {
+                            listener.onStateChange(new AnnealingState(temperature, initialEnergy, finalEnergy, delta, probability, currentStep, true, "Accepted configuration"));
+                        }
+
                         best.assign(last);
                         bestValue = best.compute();
-                    }
-                }
-                else {
-                    if(listener != null) {
-                        listener.onStateChange(new AnnealingState(temperature, initialEnergy, finalEnergy, delta, probability, currentStep, true, "Not accepted configuration"));
                     }
                 }
             }
@@ -161,14 +160,12 @@ public class SimulatedAnnealing {
         if(listener != null) {
             listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, false, 
                String.format("Finish with value: %.5f", best.compute())));
-
-            listener.finish();
         }
 
         listener.finish();
 
         try {
-            listenerThread.join();
+            if(listenerThread != null) listenerThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

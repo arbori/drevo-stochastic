@@ -8,74 +8,11 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.Test;
 
+import drevo.stochastic.annealing.function.SphereFunction;
 import drevo.stochastic.annealing.monitoring.AnnealingListener;
 import drevo.stochastic.annealing.monitoring.AnnealingState;
 
 class HighDimensionalFunctionTest extends BaseFunctionTest {
-    class SphereFunction implements AnnealingFunction {
-        ThreadLocalRandom rnd = ThreadLocalRandom.current();
-
-        private int dimention;
-        private List<Double> x;
-        private double minX = -10;
-        private double maxX = +10;
-
-        public SphereFunction(int dimention) {
-            this.dimention = dimention;
-            x = new ArrayList<>(dimention);
-            
-            for(int i = 0; i < dimention; i++) {
-                x.add(rnd.nextDouble(maxX - minX));
-            }
-        }
-
-        public List<Double> getX() {
-            return x;
-        }
-
-        @Override
-        public double compute() {
-            return compute(x);
-        }
-        public double compute(List<Double> value) {
-            return value.stream().mapToDouble(n -> n*n).sum();
-        }
-    
-        @Override
-        public void reconfigure() {
-            int size = rnd.nextInt(x.size());
-            int idx;
-
-            for(int i = 0; i < size; i++) {
-                idx = rnd.nextInt(x.size());
-                x.set(idx, x.get(idx)*(1 + (rnd.nextInt()%2 == 0 ? 1 : -1)*rnd.nextDouble()));
-            }
-        }
-    
-        @Override
-        public void assign(AnnealingFunction f) {
-            if (f instanceof SphereFunction sphereFunction && sphereFunction.dimention == this.dimention) {
-                for(int i = 0; i < dimention; i++) {
-                    x.set(i, sphereFunction.x.get(i));
-                }
-            }
-        }
-    
-        @Override
-        public boolean isValid() {
-            return !x.stream().filter(value -> -10.0 > value && value > 10).findFirst().isPresent();
-        }
-    
-        @Override
-        public AnnealingFunction copy() {
-            SphereFunction clone = new SphereFunction(dimention);
-            
-            clone.assign(this);
-            
-            return clone;
-        }
-    }
-
     class RastriginFunction implements AnnealingFunction {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
@@ -166,7 +103,7 @@ class HighDimensionalFunctionTest extends BaseFunctionTest {
 
         // Assert that we found a reasonable solution
         for(int i = 0; i < dimention; i++) {
-            assertTrue(Math.abs(expectedX - result.x.get(i)) < 10e-2, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x.get(i)));
+            assertTrue(Math.abs(expectedX - result.x(i)) < 10e-2, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x(i)));
         }
 
         assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result.compute()));
@@ -196,7 +133,7 @@ class HighDimensionalFunctionTest extends BaseFunctionTest {
 
         // Assert that we found a reasonable solution
         for(int i = 0; i < dimention; i++) {
-            assertTrue(Math.abs(expectedX - result.x.get(i)) < 10e-5, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x.get(i)));
+            assertTrue(Math.abs(expectedX - result.x(i)) < 10e-5, String.format("The x_%d set do not minimize ∑ x^2. Value: %.5f", i, result.x(i)));
         }
 
         assertTrue(Math.abs(expected - result.compute()) < 10e-5, String.format("Result should be close to the minimum. Expected: %.5f, result: %.5f", expected, result.compute()));
