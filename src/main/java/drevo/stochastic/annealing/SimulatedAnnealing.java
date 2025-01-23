@@ -162,7 +162,7 @@ public class SimulatedAnnealing {
                String.format("Finish with value: %.5f", best.compute())));
         }
 
-        listener.finish();
+        if(listener != null) listener.finish();
 
         try {
             if(listenerThread != null) listenerThread.join();
