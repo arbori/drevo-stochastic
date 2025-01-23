@@ -2,6 +2,8 @@ package drevo.stochastic.annealing;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import drevo.stochastic.ProblemType;
+
 import drevo.stochastic.annealing.monitoring.AnnealingListener;
 import drevo.stochastic.annealing.monitoring.AnnealingState;
 
@@ -103,6 +105,7 @@ public class SimulatedAnnealing {
         double finalEnergy = 0;
         double delta = 0;
         double probability = 0;
+        double bestValue = best.compute();
 
         if(listener != null) listener.onStateChange(new AnnealingState(0, initialEnergy, finalEnergy, delta, probability, 0, false, 
             String.format("Start with value: %.5f", best.compute())));
@@ -115,7 +118,7 @@ public class SimulatedAnnealing {
              System.currentTimeMillis() < endTime && temperature > ctx.finalTemperature();
              temperature *= (1 - ctx.coolingRate())) {
 
-            initialEnergy = ctx.problemType().valueOf() * last.compute();
+            initialEnergy = ctx.problemType().valueOf() * best.compute();
 
             for (int currentStep = ctx.steps(); currentStep > 0; currentStep--) {
                 last.reconfigure();
@@ -136,7 +139,11 @@ public class SimulatedAnnealing {
                     }
 
                     initialEnergy = finalEnergy;
-                    best.assign(last);
+
+                    if((ctx.problemType == ProblemType.MAXIMIZE && bestValue < ctx.problemType().valueOf() * finalEnergy) || (ctx.problemType == ProblemType.MINIMIZE && bestValue > ctx.problemType().valueOf() * finalEnergy)) {
+                        best.assign(last);
+                        bestValue = best.compute();
+                    }
                 }
                 else {
                     if(listener != null) {
