@@ -2,6 +2,8 @@ package drevo.stochastic.annealing;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import drevo.stochastic.ProblemType;
+
 /**
  * This class is an implementation of Simulated Annealing Algorithm that simulate a cooling process as a metaphor 
  * for the search good solution of a problem.
@@ -89,6 +91,7 @@ public class SimulatedAnnealing {
         double finalEnergy;
         double delta;
         double probability;
+        double bestValue = best.compute();
 
         // Calculate the deadline
         long endTime = System.currentTimeMillis() + ctx.deadline() * 1000;
@@ -98,7 +101,7 @@ public class SimulatedAnnealing {
              System.currentTimeMillis() < endTime && temperature > ctx.finalTemperature();
              temperature *= (1 - ctx.coolingRate())) {
 
-            initialEnergy = ctx.problemType().valueOf() * last.compute();
+            initialEnergy = ctx.problemType().valueOf() * best.compute();
 
             for (int currentStep = ctx.steps(); currentStep > 0; currentStep--) {
                 last.reconfigure();
@@ -115,7 +118,11 @@ public class SimulatedAnnealing {
                 // Check whether to accept the new configuration
                 if ((delta <= 0 || rand.nextDouble() < probability) && last.isValid()) {
                     initialEnergy = finalEnergy;
-                    best.assign(last);
+
+                    if((ctx.problemType == ProblemType.MAXIMIZE && bestValue < ctx.problemType().valueOf() * finalEnergy) || (ctx.problemType == ProblemType.MINIMIZE && bestValue > ctx.problemType().valueOf() * finalEnergy)) {
+                        best.assign(last);
+                        bestValue = best.compute();
+                    }
                 }
             }
         }
