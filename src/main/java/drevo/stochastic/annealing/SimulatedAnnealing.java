@@ -4,6 +4,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import drevo.stochastic.ProblemType;
 
+import drevo.stochastic.annealing.monitoring.AnnealingListener;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+import drevo.stochastic.annealing.monitoring.StateChangeHandler;
+
 /**
  * This class is an implementation of Simulated Annealing Algorithm that simulate a cooling process as a metaphor 
  * for the search good solution of a problem.
@@ -75,62 +79,152 @@ import drevo.stochastic.ProblemType;
  * a new AnnealingFunction is returned and its internal state is the solution founded, the optimum point, minimum or maximum, depending on the type of the problem. 
  */
 public class SimulatedAnnealing {
-    private SimulatedAnnealing() {
+    private static final double BOLTZMANN_CONSTANT = 8.6173432e-5;
+
+    private final AnnealingContext ctx;
+    private final AnnealingFunction function;
+
+    private final AnnealingListener listener;
+    private final Thread listenerThread;
+
+    private final ThreadLocalRandom rand;
+
+    private AnnealingFunction best;
+    private AnnealingFunction last;
+    private double initialEnergy;
+    private double finalEnergy;
+    private double delta;
+    private double probability;
+    private double bestValue;
+
+    /**
+     * Create an SimulateAnnealing object to be used in the scope of optimization,
+     * or better saying, search process represented by cooling process. The state 
+     * of an SimulateAnnealing object is used during the cooling process for 
+     * simplify the code.
+     * 
+     * @param ctx The context of the process was called.
+     * @param function The function using to find the optimum value.
+     * @param handler If the caller need know the information of the process, it need define a handle for AnnealingState.
+     */
+    private SimulatedAnnealing(AnnealingContext ctx, AnnealingFunction function, StateChangeHandler handler) {
+        this.ctx = ctx;
+        this.function = function;
+
+        listener = new AnnealingListener(handler);
+        
+        listenerThread = new Thread(listener);
+        listenerThread.start();
+
+        rand = ThreadLocalRandom.current();
+
+        best = function.copy();
+        last = function.copy();
+        initialEnergy = 0;
+        finalEnergy = 0;
+        delta = 0;
+        probability = 0;
+        bestValue = best.compute();
     }
-    
+
+    /**
+     * Call the search process without a handle for internal state changes and return the better value founded.
+     * 
+     * @param ctx The context of the process was called.
+     * @param function The function using to find the optimum value.
+     * @return The better value founded during the process.
+     */
     public static AnnealingFunction optimize(AnnealingContext ctx, AnnealingFunction function) {
-        if(!function.isValid()) {
-            throw new IllegalArgumentException("The solution candidate sent to cooling process is invalid.");
+        return optimize(ctx, function, null);
+    }
+
+    /**
+     * Call the search process with a handle for internal state changes and return the better value founded.
+     * 
+     * @param ctx The context of the process was called.
+     * @param function The function using to find the optimum value.
+     * @param handler
+     * @return The better value founded during the process.
+     */
+    public static AnnealingFunction optimize(AnnealingContext ctx, AnnealingFunction function, StateChangeHandler handler) {
+        SimulatedAnnealing sa = new SimulatedAnnealing(ctx, function, handler);
+
+        sa.listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, sa.ctx, 0, false, 
+            String.format("Start cooling process with context: %s", sa.ctx)));
+
+        if(!sa.function.isValid()) {
+            sa.listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, 0, sa.ctx, 0, false, 
+                "The solution candidate sent to cooling process is invalid."));
+
+            return sa.function.copy();
         }
 
-        ThreadLocalRandom rand = ThreadLocalRandom.current();
-
-        AnnealingFunction best = function.copy();
-        AnnealingFunction last = function.copy();
-        double initialEnergy;
-        double finalEnergy;
-        double delta;
-        double probability;
-        double bestValue = best.compute();
+        sa.listener.onStateChange(new AnnealingState(0, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, 0, false, 
+            String.format("Start with value: %f", sa.best.compute())));
 
         // Calculate the deadline
-        long endTime = System.currentTimeMillis() + ctx.deadline() * 1000;
+        long endTime = System.currentTimeMillis() + sa.ctx.deadline() * 1000;
 
         // Cooling process
-        for (double temperature = ctx.initialTemperature();
-             System.currentTimeMillis() < endTime && temperature > ctx.finalTemperature();
-             temperature *= (1 - ctx.coolingRate())) {
+        for (double temperature = sa.ctx.initialTemperature();
+             System.currentTimeMillis() < endTime && temperature > sa.ctx.finalTemperature();
+             temperature *= (1 - sa.ctx.coolingRate())) {
 
-            initialEnergy = ctx.problemType().valueOf() * best.compute();
+            sa.initialEnergy = sa.ctx.problemType().valueOf() * sa.best.compute();
 
-            for (int currentStep = ctx.steps(); currentStep > 0; currentStep--) {
-                last.reconfigure();
+            changeSolutionState(sa, temperature);
+        }
 
-                // Calculate the current energy
-                finalEnergy = ctx.problemType().valueOf() * last.compute();
+        if(!sa.best.isValid()) {
+            sa.listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, sa.bestValue, sa.ctx, 0, false, 
+                "The founded solution in cooling process is invalid."));
+        }
 
-                // Calculate energy change
-                delta = finalEnergy - initialEnergy;
+        sa.listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, sa.bestValue, sa.ctx, 0, false, 
+            String.format("Finish with value: %f", sa.best.compute())));
 
-                // Calculate Boltzmann probability
-                probability = Math.exp((-1 * delta) / (ctx.boltzmannConstant() * temperature));
+        sa.listener.finish();
 
-                // Check whether to accept the new configuration
-                if ((delta <= 0 || rand.nextDouble() < probability) && last.isValid()) {
-                    initialEnergy = finalEnergy;
+        try {
+            sa.listenerThread.join();
+        } catch (InterruptedException e) {
+            sa.listenerThread.interrupt();
+        }
 
-                    if((ctx.problemType == ProblemType.MAXIMIZE && bestValue < ctx.problemType().valueOf() * finalEnergy) || (ctx.problemType == ProblemType.MINIMIZE && bestValue > ctx.problemType().valueOf() * finalEnergy)) {
-                        best.assign(last);
-                        bestValue = best.compute();
-                    }
+        return sa.best;
+    }
+
+    /**
+     * Handle the internal change in the solution candidate and decide if should
+     * be the better solution founded until the moment.
+     * 
+     * @param sa The SimulatedAnnealing object for this call of optimize method.
+     * @param temperature The temperature value when try change the solution candidate.
+     */
+    private static void changeSolutionState(SimulatedAnnealing sa, double temperature) {
+        for (int currentStep = sa.ctx.steps(); currentStep > 0; currentStep--) {
+            sa.last.reconfigure();
+
+            // Calculate the current energy
+            sa.finalEnergy = sa.ctx.problemType().valueOf() * sa.last.compute();
+
+            // Calculate energy change
+            sa.delta = sa.finalEnergy - sa.initialEnergy;
+
+            // Calculate Boltzmann probability
+            sa.probability = Math.exp((-1 * sa.delta) / (BOLTZMANN_CONSTANT * temperature));
+
+            // Check whether to accept the new configuration
+            if ((sa.delta <= 0 || sa.rand.nextDouble() < sa.probability) && sa.last.isValid()) {
+                sa.initialEnergy = sa.finalEnergy;
+
+                if((sa.ctx.problemType == ProblemType.MAXIMIZE && sa.bestValue < sa.ctx.problemType().valueOf() * sa.finalEnergy) || (sa.ctx.problemType == ProblemType.MINIMIZE && sa.bestValue > sa.ctx.problemType().valueOf() * sa.finalEnergy)) {
+                    sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Accepted configuration"));
+
+                    sa.best.assign(sa.last);
+                    sa.bestValue = sa.best.compute();
                 }
             }
         }
-
-        if(!best.isValid()) {
-            throw new IllegalArgumentException("The founded solution in cooling process is invalid.");
-        }
-
-        return best;
     }
 }

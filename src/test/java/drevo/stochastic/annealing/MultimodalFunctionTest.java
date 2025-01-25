@@ -78,7 +78,8 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         // Run Simulated Annealing
         MultimodalFunction result = (MultimodalFunction) SimulatedAnnealing.optimize(
             new AnnealingContext(100000, 0.001, 0.01, 200_000, 30 * 60 * 60, ProblemType.MINIMIZE), 
-            function);
+            function,
+            handler);
 
         logger.info(() -> String.format("Final x value: %.8f -> f(x) = %.8f.", result.x, result.compute()));
 
@@ -99,7 +100,8 @@ class MultimodalFunctionTest extends BaseFunctionTest {
         // Run Simulated Annealing
         MultimodalFunction result = (MultimodalFunction) SimulatedAnnealing.optimize(
             new AnnealingContext(100000, 0.001, 0.01, 200_000, 30 * 60 * 60, ProblemType.MAXIMIZE), 
-            function);
+            function,
+            handler);
 
         logger.info(() -> String.format("Final x value: %.8f -> f(x) = %.8f.", result.x, result.compute()));
 

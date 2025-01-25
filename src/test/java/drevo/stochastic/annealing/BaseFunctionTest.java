@@ -1,6 +1,7 @@
 package drevo.stochastic.annealing;
 
 import drevo.stochastic.ProblemType;
+import drevo.stochastic.annealing.monitoring.StateChangeHandler;
 
 public abstract class BaseFunctionTest {
     // Configure Annealing Context for minimize
@@ -16,4 +17,14 @@ public abstract class BaseFunctionTest {
 
     // Configure default Annealing Context for maximize
     AnnealingContext maximizeDefaultAnnealingContext = new AnnealingContext(ProblemType.MAXIMIZE);
+
+    StateChangeHandler handler = state -> {
+        if (state.currentStep() == 0 && state.temperature() == 0.0) {
+            System.out.println(state.message());
+        } else {
+            System.out.print(state.currentStep());
+            System.out.print("\t");
+            System.out.println(state.context().problemType().valueOf() * state.finalEnergy());
+        }
+    };
 }

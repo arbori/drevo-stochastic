@@ -29,12 +29,6 @@ public class AnnealingContext {
     public final long deadline;
     public final ProblemType problemType;
 
-    private final double temperatureVariation;
-
-    private double scaleConstant = 1.0;
-    private double minimumEnergy = Double.POSITIVE_INFINITY;
-    private double maximumEnergy = 0;
-
     public AnnealingContext(ProblemType problemType) {
         this(10000, 0.1, 0.01, 150000, 300, problemType);
     }
@@ -66,8 +60,6 @@ public class AnnealingContext {
         this.steps = steps;
         this.deadline = deadline;
         this.problemType = problemType;
-
-        this.temperatureVariation = (initialTemperature - finalTemperature);
     }
 
     public double initialTemperature() { return initialTemperature; }
@@ -82,18 +74,17 @@ public class AnnealingContext {
 
     public ProblemType problemType() { return problemType; }
 
-    public double boltzmannConstant() {
-        return 8.6173432e-5;
+    @Override
+    public String toString() {
+        return "{AnnealingContext: {" + 
+                    "'initialTemperature': " + initialTemperature + 
+                    ", 'finalTemperature': " + finalTemperature +
+                    ", 'coolingRate': '" + coolingRate + 
+                    "', 'steps': '" + steps + 
+                    "', 'deadline': '" + deadline + 
+                    "', 'problemType': '" + problemType + "'" +
+                "}";
     }
 
-    public double scaleConstant(double initialEnergy, double finalEnergy) {
-        if(initialEnergy < minimumEnergy || finalEnergy > maximumEnergy) {
-            if(initialEnergy < minimumEnergy) minimumEnergy = initialEnergy;
-            if(finalEnergy > maximumEnergy) maximumEnergy = finalEnergy;
-
-            scaleConstant = (maximumEnergy - minimumEnergy) / temperatureVariation;
-        }
-
-        return scaleConstant;
-    }
+    
 }
