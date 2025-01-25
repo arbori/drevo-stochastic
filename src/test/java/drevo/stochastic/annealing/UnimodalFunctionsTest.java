@@ -2,13 +2,9 @@ package drevo.stochastic.annealing;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import org.junit.jupiter.api.Test;
 
 import drevo.stochastic.annealing.function.QuadraticFunction;
-import drevo.stochastic.annealing.monitoring.AnnealingListener;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
 
 class UnimodalFunctionsTest extends BaseFunctionTest {
     @Test
@@ -20,11 +16,7 @@ class UnimodalFunctionsTest extends BaseFunctionTest {
         QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(
             minimizeDefaultAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 2.0;
         double expected  = 0.0;
@@ -43,11 +35,7 @@ class UnimodalFunctionsTest extends BaseFunctionTest {
         QuadraticFunction result = (QuadraticFunction) SimulatedAnnealing.optimize(
             minimizeAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 2.0;
         double expected  = 0.0;

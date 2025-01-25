@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import drevo.stochastic.annealing.function.StepFunction;
-import drevo.stochastic.annealing.monitoring.AnnealingListener;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
 
 class StepFunctionTest extends BaseFunctionTest {
     @Test
@@ -18,11 +16,7 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
             minimizeDefaultAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 2.0;
         double expected  = -1.0;
@@ -41,11 +35,7 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
             minimizeAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 2.0;
         double expected  = -1.0;
@@ -64,11 +54,7 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
             maximizeDefaultAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 1.0;
         double expected  = 1.0;
@@ -87,11 +73,7 @@ class StepFunctionTest extends BaseFunctionTest {
         StepFunction result = (StepFunction) SimulatedAnnealing.optimize(
             maximizeAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 1.0;
         double expected  = 1.0;

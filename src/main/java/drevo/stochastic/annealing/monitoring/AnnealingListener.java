@@ -3,11 +3,15 @@ package drevo.stochastic.annealing.monitoring;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AnnealingListener implements Runnable {
+public class AnnealingListener implements Runnable {
     private List<AnnealingState> states = new ArrayList<>();
-
     private boolean[] finish = { false };
+    private final StateChangeHandler handler;
     
+    public AnnealingListener(StateChangeHandler handler) {
+        this.handler = handler;
+    }
+
     @Override
     public void run() {
         while (true) {
@@ -25,7 +29,9 @@ public abstract class AnnealingListener implements Runnable {
                 }
             }
 
-            if (state != null) handleStateChange(state);
+            if (state != null && handler != null) {
+                handler.handleStateChange(state);
+            }
         }
     }
     
@@ -40,6 +46,4 @@ public abstract class AnnealingListener implements Runnable {
             finish[0] = true;
         }
     }
-
-    protected abstract void handleStateChange(AnnealingState state);
 }

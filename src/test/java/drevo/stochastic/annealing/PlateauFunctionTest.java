@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import drevo.stochastic.annealing.function.PlateauFunction;
-import drevo.stochastic.annealing.monitoring.AnnealingListener;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
 
 class PlateauFunctionTest extends BaseFunctionTest {
     @Test
@@ -18,11 +16,7 @@ class PlateauFunctionTest extends BaseFunctionTest {
         PlateauFunction result = (PlateauFunction) SimulatedAnnealing.optimize(
             minimizeDefaultAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 1.0;
         double expected  = 0.0;
@@ -42,11 +36,7 @@ class PlateauFunctionTest extends BaseFunctionTest {
         PlateauFunction result = (PlateauFunction) SimulatedAnnealing.optimize(
             minimizeAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 1.0;
         double expected  = 0.0;
@@ -66,11 +56,7 @@ class PlateauFunctionTest extends BaseFunctionTest {
         PlateauFunction result = (PlateauFunction) SimulatedAnnealing.optimize(
             maximizeDefaultAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 1.0;
         double expected  = 9.0;
@@ -90,11 +76,7 @@ class PlateauFunctionTest extends BaseFunctionTest {
         PlateauFunction result = (PlateauFunction) SimulatedAnnealing.optimize(
             maximizeAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedX = 1.0;
         double expected  = 9.0;

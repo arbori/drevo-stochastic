@@ -2,13 +2,9 @@ package drevo.stochastic.annealing;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import org.junit.jupiter.api.Test;
 
 import drevo.stochastic.annealing.function.QuadraticNoiseFunction;
-import drevo.stochastic.annealing.monitoring.AnnealingListener;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
 
 class NoisyFunctionTest extends BaseFunctionTest {
     @Test
@@ -20,11 +16,7 @@ class NoisyFunctionTest extends BaseFunctionTest {
         QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(
             minimizeDefaultAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedMinX = 2.0 - function.noise;
         double expectedMaxX = 2.0 + function.noise;
@@ -48,11 +40,7 @@ class NoisyFunctionTest extends BaseFunctionTest {
         QuadraticNoiseFunction result = (QuadraticNoiseFunction) SimulatedAnnealing.optimize(
             minimizeAnnealingContext, 
             function,
-            new AnnealingListener() {
-                protected void handleStateChange(AnnealingState state) {
-                    System.out.println(state);
-                }
-            });
+            handler);
 
         double expectedMinX = 2.0 - function.noise;
         double expectedMaxX = 2.0 + function.noise;

@@ -100,7 +100,10 @@ class MixedIntegerFunctionTest extends BaseFunctionTest {
         KnapsackFunction function = new KnapsackFunction(v, w, penalty, restrition);
 
         // Run Simulated Annealing
-        KnapsackFunction result = (KnapsackFunction) SimulatedAnnealing.optimize(maximizeAnnealingContext, function, null);
+        KnapsackFunction result = (KnapsackFunction) SimulatedAnnealing.optimize(
+            maximizeAnnealingContext, 
+            function, 
+            handler);
 
         double expectedResult = maximumValue(v, w, restrition);
 

@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import drevo.stochastic.annealing.function.MichalewiczFunction;
-import drevo.stochastic.annealing.monitoring.AnnealingListener;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
 
 class MichalewiczFunctionTest extends BaseFunctionTest {
     @Test
@@ -18,11 +16,7 @@ class MichalewiczFunctionTest extends BaseFunctionTest {
         MichalewiczFunction result = (MichalewiczFunction) SimulatedAnnealing.optimize(
                 maximizeDefaultAnnealingContext,
                 function,
-                new AnnealingListener() {
-                    protected void handleStateChange(AnnealingState state) {
-                        System.out.println(state);
-                    }
-                });
+                handler);
 
         double expectedValueThreshold = -1.0; // Known approximate maximum value for 5D Michalewicz function
         double computedValue = -result.compute(); // Negated since the function is inverted for minimization
@@ -42,11 +36,7 @@ class MichalewiczFunctionTest extends BaseFunctionTest {
         MichalewiczFunction result = (MichalewiczFunction) SimulatedAnnealing.optimize(
                 maximizeAnnealingContext,
                 function,
-                new AnnealingListener() {
-                    protected void handleStateChange(AnnealingState state) {
-                        System.out.println(state);
-                    }
-                });
+                handler);
 
         double expectedValueThreshold = -1.0; // Known approximate maximum value for 5D Michalewicz function
         double computedValue = -result.compute(); // Negated since the function is inverted for minimization
