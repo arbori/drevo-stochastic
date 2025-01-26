@@ -19,7 +19,7 @@ class MichalewiczFunctionTest extends BaseFunctionTest {
                 handler);
 
         double expectedValueThreshold = -1.0; // Known approximate maximum value for 5D Michalewicz function
-        double computedValue = -result.compute(); // Negated since the function is inverted for minimization
+        double computedValue = result.compute(); // Negated since the function is inverted for minimization
 
         // Assert that we found a reasonable solution
         assertTrue(computedValue >= expectedValueThreshold,
@@ -39,7 +39,7 @@ class MichalewiczFunctionTest extends BaseFunctionTest {
                 handler);
 
         double expectedValueThreshold = -1.0; // Known approximate maximum value for 5D Michalewicz function
-        double computedValue = -result.compute(); // Negated since the function is inverted for minimization
+        double computedValue = result.compute(); // Negated since the function is inverted for minimization
 
         // Assert that we found a reasonable solution
         assertTrue(computedValue >= expectedValueThreshold,

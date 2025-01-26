@@ -96,6 +96,9 @@ public class SimulatedAnnealing {
     private double delta;
     private double probability;
     private double bestValue;
+    private int persitenceCount;
+
+    private boolean earlyStop;
 
     /**
      * Create an SimulateAnnealing object to be used in the scope of optimization,
@@ -125,6 +128,9 @@ public class SimulatedAnnealing {
         delta = 0;
         probability = 0;
         bestValue = best.compute();
+        
+        persitenceCount = 0;
+        earlyStop = false;
     }
 
     /**
@@ -167,7 +173,7 @@ public class SimulatedAnnealing {
 
         // Cooling process
         for (double temperature = sa.ctx.initialTemperature();
-             System.currentTimeMillis() < endTime && temperature > sa.ctx.finalTemperature();
+            !sa.earlyStop && System.currentTimeMillis() < endTime && temperature > sa.ctx.finalTemperature();
              temperature *= (1 - sa.ctx.coolingRate())) {
 
             sa.initialEnergy = sa.ctx.problemType().valueOf() * sa.best.compute();
@@ -202,7 +208,7 @@ public class SimulatedAnnealing {
      * @param temperature The temperature value when try change the solution candidate.
      */
     private static void changeSolutionState(SimulatedAnnealing sa, double temperature) {
-        for (int currentStep = sa.ctx.steps(); currentStep > 0; currentStep--) {
+        for (int currentStep = sa.ctx.steps(); !sa.earlyStop && currentStep > 0; currentStep--) {
             sa.last.reconfigure();
 
             // Calculate the current energy
@@ -216,14 +222,20 @@ public class SimulatedAnnealing {
 
             // Check whether to accept the new configuration
             if ((sa.delta <= 0 || sa.rand.nextDouble() < sa.probability) && sa.last.isValid()) {
-                sa.initialEnergy = sa.finalEnergy;
-
                 if((sa.ctx.problemType == ProblemType.MAXIMIZE && sa.bestValue < sa.ctx.problemType().valueOf() * sa.finalEnergy) || (sa.ctx.problemType == ProblemType.MINIMIZE && sa.bestValue > sa.ctx.problemType().valueOf() * sa.finalEnergy)) {
                     sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Accepted configuration"));
 
+                    sa.bestValue = sa.ctx.problemType().valueOf() * sa.finalEnergy;
                     sa.best.assign(sa.last);
-                    sa.bestValue = sa.best.compute();
                 }
+
+                sa.initialEnergy = sa.finalEnergy;
+            }
+
+            double variation = Math.abs(sa.ctx.problemType().valueOf() * sa.finalEnergy - sa.bestValue);
+
+            if(variation < sa.ctx.variationThreshold && ++sa.persitenceCount >= sa.ctx.variationPersitence) {
+                sa.earlyStop = true;
             }
         }
     }

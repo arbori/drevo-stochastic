@@ -24,7 +24,7 @@ public class MichalewiczFunction implements AnnealingFunction {
             double xi = x[i];
             result += Math.sin(xi) * Math.pow(Math.sin((i + 1) * xi * xi / PI), 2 * M);
         }
-        return -result; // Negate because the algorithm minimizes by default
+        return result;
     }
 
     @Override

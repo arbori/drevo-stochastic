@@ -15,6 +15,10 @@ import drevo.stochastic.ProblemType;
  * For each temperature the algorithm will try find a beter configuration for the number of steps.
  * - deadline
  * It is a control parameter that put a time limit to run the simulation, in seconds.
+ * - variationThreshold
+ * The variationThreshold is the parameter to informe the algorithm that if the value founded is below this threshoul the process can stop.
+ * - variationPersitence
+ * The algorithm will not stop in the first time variationThreshold is achived, the variationPersitence is about how many interations variationThreshold need be achived to stop algorithm.
  * - problemType
  * Define if to find the problem solution a maximization or minimization is required.
  * </pre>
@@ -27,13 +31,15 @@ public class AnnealingContext {
     public final double coolingRate;
     public final int steps;
     public final long deadline;
+    public final double variationThreshold;
+    public final long variationPersitence;
     public final ProblemType problemType;
 
     public AnnealingContext(ProblemType problemType) {
-        this(10000, 0.1, 0.01, 150000, 300, problemType);
+        this(10000, 0.1, 0.01, 150000, 300, -1, -1, problemType);
     }
 
-    public AnnealingContext(double initialTemperature, double finalTemperature, double coolingRate, int steps, long deadline, ProblemType problemType) {
+    public AnnealingContext(double initialTemperature, double finalTemperature, double coolingRate, int steps, long deadline, double variationThreshold, int variationPersitence, ProblemType problemType) {
         if(initialTemperature < 0.0 || finalTemperature < 0.0) {
             throw new IllegalArgumentException("Temperatures must have positive values.");
         }
@@ -59,6 +65,8 @@ public class AnnealingContext {
         this.coolingRate = coolingRate;
         this.steps = steps;
         this.deadline = deadline;
+        this.variationThreshold = variationThreshold; 
+        this.variationPersitence = variationPersitence;
         this.problemType = problemType;
     }
 
@@ -72,6 +80,10 @@ public class AnnealingContext {
 
     public long deadline() { return deadline; }
 
+    public double variationThreshold() { return variationThreshold; }
+
+    public long variationPersitence() { return variationPersitence; }
+
     public ProblemType problemType() { return problemType; }
 
     @Override
@@ -82,9 +94,9 @@ public class AnnealingContext {
                     ", 'coolingRate': '" + coolingRate + 
                     "', 'steps': '" + steps + 
                     "', 'deadline': '" + deadline + 
+                    "', 'variationThreshold': '" + variationThreshold +
+                    "', 'variationPersitence': '" + variationPersitence +
                     "', 'problemType': '" + problemType + "'" +
                 "}";
     }
-
-    
 }
