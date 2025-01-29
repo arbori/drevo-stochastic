@@ -33,6 +33,10 @@ public class Interval {
     }
 
     private void validateValue() {
+        if(min > max) {
+            throw new IllegalStateException("Minimum value must be less then maximum value in an Interval");
+        }
+
         if (value < min) {
             value = min;
         } else if (value > max) {
