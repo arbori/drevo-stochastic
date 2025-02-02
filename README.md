@@ -5,6 +5,9 @@ algorithms like that is better know not as optimization algorithm, but a search 
 
 There are many documentation about how each algorithm is implemented in Javadoc from this project, but here is offered an introdution and sample to how use the algorithms to sove a real problem.
 
+## License
+This project is licensed under the GNU Affero General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+
 ## Simulated Annealing
 From Javadoc about SimulatedAnnealing class and other classes involved in this implementaion is possible read many informations about how use it to solve problem. Below is offered an way to solve the Traveling Salesman Problem, that is the problem to visit a set of cities in a shortest path possible, reducing the traveling's distance. To solve this problem using SimulatedAnnealing class, first is necessary define the objective function to compute the distance folow to visit all cities.
 
