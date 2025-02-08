@@ -77,7 +77,7 @@ public class Interval {
     }
 
     public Interval change(double variation) {
-        value(value *(1 + variation));
+        value(variation * (upper - low) + low);
 
         return this;
     }

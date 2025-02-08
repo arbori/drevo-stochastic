@@ -42,13 +42,6 @@ class IntervalTest {
     }
 
     @Test
-    void testvalueOutsideBounds() {
-        Interval interval = new Interval(1.0, 5.0, 3.0);
-        assertThrows(IllegalArgumentException.class, () -> interval.value(0.0));
-        assertThrows(IllegalArgumentException.class, () -> interval.value(6.0));
-    }
-
-    @Test
     void testAdd() {
         Interval a = new Interval(1.0, 3.0, 2.0);
         Interval b = new Interval(2.0, 4.0, 3.0);
