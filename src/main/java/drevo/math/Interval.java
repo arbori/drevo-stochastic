@@ -24,6 +24,17 @@ public class Interval {
     private double value;
 
     // Constructor
+    public Interval(double low, double upper) {
+        if (low > upper) {
+            throw new IllegalArgumentException("Lower bound cannot be greater than upper bound.");
+        }
+
+        this.low = low;
+        this.upper = upper;
+         
+        value(ThreadLocalRandom.current().nextDouble()*(upper - low) + low); // Validate and set the initial value
+    }
+
     public Interval(double low, double upper, double value) {
         if (low > upper) {
             throw new IllegalArgumentException("Lower bound cannot be greater than upper bound.");
