@@ -25,9 +25,7 @@ public class Interval {
 
     // Constructor
     public Interval(double low, double upper) {
-        if (low > upper) {
-            throw new IllegalArgumentException("Lower bound cannot be greater than upper bound.");
-        }
+        isValidBounds(low, upper);
 
         this.low = low;
         this.upper = upper;
@@ -36,9 +34,7 @@ public class Interval {
     }
 
     public Interval(double low, double upper, double value) {
-        if (low > upper) {
-            throw new IllegalArgumentException("Lower bound cannot be greater than upper bound.");
-        }
+        isValidBounds(low, upper);
 
         this.low = low;
         this.upper = upper;
@@ -47,14 +43,18 @@ public class Interval {
     }
 
     public Interval(Interval other) {
-        if (other.low > other.upper) {
-            throw new IllegalArgumentException("Lower bound cannot be greater than upper bound.");
-        }
+        isValidBounds(other.low, other.upper);
         
         this.low = other.low;
         this.upper = other.upper;
         
         value(other.value); // Validate and set the initial value
+    }
+
+    private void isValidBounds(double low, double upper) {
+        if (low > upper) {
+            throw new IllegalArgumentException("Lower bound cannot be greater than upper bound.");
+        }
     }
 
     // Getters for low and upper (read-only)
@@ -87,8 +87,8 @@ public class Interval {
         return this;
     }
 
-    public Interval change(double variation) {
-        value(variation * (upper - low) + low);
+    public Interval change(double variation) { 
+        value(this.value * (1 + variation));
 
         return this;
     }
