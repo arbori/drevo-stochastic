@@ -113,7 +113,7 @@ public class SimulatedAnnealing {
     private double probability;
     private double bestValue;
     private int persitenceCount;
-
+    private long endTime;
     private boolean earlyStop;
 
     /**
@@ -144,8 +144,8 @@ public class SimulatedAnnealing {
         delta = 0;
         probability = 0;
         bestValue = best.compute();
-        
         persitenceCount = 0;
+        endTime = 0;
         earlyStop = false;
     }
 
@@ -185,11 +185,11 @@ public class SimulatedAnnealing {
             String.format("Start with value: %f", sa.best.compute())));
 
         // Calculate the deadline
-        long endTime = System.currentTimeMillis() + sa.ctx.deadline() * 1000;
+        sa.endTime = System.currentTimeMillis() + sa.ctx.deadline() * 1000;
 
         // Cooling process
         for (double temperature = sa.ctx.initialTemperature();
-            !sa.earlyStop && System.currentTimeMillis() < endTime && temperature > sa.ctx.finalTemperature();
+            !sa.earlyStop && System.currentTimeMillis() < sa.endTime && temperature > sa.ctx.finalTemperature();
              temperature *= (1 - sa.ctx.coolingRate())) {
 
             sa.initialEnergy = sa.ctx.problemType().valueOf() * sa.best.compute();
@@ -250,9 +250,9 @@ public class SimulatedAnnealing {
 
             double variation = Math.abs(sa.ctx.problemType().valueOf() * sa.finalEnergy - sa.bestValue);
 
-            if(variation < sa.ctx.variationThreshold && ++sa.persitenceCount >= sa.ctx.variationPersitence) {
-                sa.earlyStop = true;
-            }
+            sa.earlyStop = System.currentTimeMillis() >= sa.endTime 
+                && variation < sa.ctx.variationThreshold 
+                && ++sa.persitenceCount >= sa.ctx.variationPersitence;
         }
     }
 }
