@@ -30,7 +30,7 @@ import drevo.stochastic.ProblemType;
  * - steps
  * For each temperature the algorithm will try find a beter configuration for the number of steps.
  * - deadline
- * It is a control parameter that put a time limit to run the simulation, in seconds.
+ * It is a control parameter that put a time limit to run the simulation, in milliseconds.
  * - variationThreshold
  * The variationThreshold is the parameter to informe the algorithm that if the value founded is below this threshoul the process can stop.
  * - variationPersitence
