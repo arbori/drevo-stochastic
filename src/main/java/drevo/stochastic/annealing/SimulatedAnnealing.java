@@ -185,7 +185,7 @@ public class SimulatedAnnealing {
             String.format("Start with value: %f", sa.best.compute())));
 
         // Calculate the deadline
-        sa.endTime = System.currentTimeMillis() + sa.ctx.deadline() * 1000;
+        sa.endTime = System.currentTimeMillis() + sa.ctx.deadline();
 
         // Cooling process
         for (double temperature = sa.ctx.initialTemperature();
@@ -248,11 +248,43 @@ public class SimulatedAnnealing {
                 sa.initialEnergy = sa.finalEnergy;
             }
 
-            double variation = Math.abs(sa.ctx.problemType().valueOf() * sa.finalEnergy - sa.bestValue);
+            checkStopEarly(sa, temperature, currentStep);
+        }
+    }
 
-            sa.earlyStop = System.currentTimeMillis() >= sa.endTime 
-                && variation < sa.ctx.variationThreshold 
-                && ++sa.persitenceCount >= sa.ctx.variationPersitence;
+    /**
+     * Check is stop early condition was achived and set the flag properly.
+     * 
+     * @param sa Hinstance of SimulatedAnnealing.
+     * @param temperature Temperature of the process.
+     * @param currentStep Current step to try a better configuration
+     */
+    private static void checkStopEarly(SimulatedAnnealing sa, double temperature, int currentStep) {
+        // Compute variation take as reference the best value.
+        double variation = Math.abs(sa.ctx.problemType().valueOf() * sa.finalEnergy - sa.bestValue);
+
+        // The early stop condition can be true, if varation is less then threshold...
+        if (variation < sa.ctx.variationThreshold) {
+            sa.persitenceCount++;
+
+            // ... and the time of it is higher then the limit, 
+            /// the amount of time this variation still below the threshold.
+            if (sa.persitenceCount >= sa.ctx.variationPersitence) {
+                sa.earlyStop = true;
+                sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Early stop due to variation threshold"));
+            }
+        }
+        // It is important restart count for variation because it is a stochastic
+        // process and variation can be above or below threshold until stabilize below.. 
+        else {
+            sa.persitenceCount = 0; // Reset persistence count if variation is above threshold
+        }
+
+        // Check for early stop based on time limit computed in the begining of the process
+        long now = System.currentTimeMillis();
+        if (now >= sa.endTime) {
+            sa.earlyStop = true;
+            sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Early stop due to time limit"));
         }
     }
 }
