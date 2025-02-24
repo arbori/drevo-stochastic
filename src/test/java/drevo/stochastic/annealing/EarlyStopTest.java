@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Marcelo Arbori Nogueira - marcelo.arbori@gmail.com
+ * Copyright (C) 2025 Marcelo Arbori Nogueira - marcelo.arbori@gmail.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,89 +16,116 @@
  */
 package drevo.stochastic.annealing;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 
 import drevo.stochastic.ProblemType;
-import drevo.stochastic.annealing.function.WhiteNoiseFunction;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
-import drevo.stochastic.annealing.monitoring.StateChangeHandler;
-
-class CountListner implements StateChangeHandler {
-    private long amount;
-
-    public long amount() {
-        return amount;
-    }
-
-    @Override
-    public void handleStateChange(AnnealingState state) {
-        amount++;
-
-        if (state.currentStep() == 0 && state.temperature() == 0.0) {
-            System.out.println(state.message());
-        } else {
-            System.out.print(state.temperature());
-            System.out.print("\t");
-            System.out.print(state.currentStep());
-            System.out.print("\t");
-            System.out.print(state.context().problemType().valueOf() * state.initialEnergy());
-            System.out.print("\t");
-            System.out.println(state.context().problemType().valueOf() * state.finalEnergy());
-        }
-    }
-
-}
+import drevo.stochastic.annealing.function.InverseSciExponentFunction;
 
 class EarlyStopTest {
+    Logger logger = LoggerFactory.getLogger(getClass());
+
     @Test
-    void earlyStopMaximizeTest() {
-        double noiseLevel = 1e-3;
+    void stepTest() {
+        InverseSciExponentFunction func = new InverseSciExponentFunction(1e-3, 201);
 
-        double initialTemperature = 10000;
-        double finalTemperature = 0.1;
-        double coolingRate = 0.01;
-        int steps = 150000;
-        long deadline = 300;
-        double variationThreshold = noiseLevel;
-        int variationPersitence = 5;
-        ProblemType problemType = ProblemType.MAXIMIZE;
+        double totalSteps = 0.0;
 
-        WhiteNoiseFunction function = new WhiteNoiseFunction(noiseLevel);
+        while (func.compute() > func.threshold()) {
+            func.reconfigure();
 
-        AnnealingContext context = new AnnealingContext(
-            initialTemperature, finalTemperature, coolingRate, steps, deadline, variationThreshold, variationPersitence, problemType);
+            totalSteps += 1.0;
+        }
 
-        CountListner listner = new CountListner();
+        String message = String.format("x: %.5f, f(x): %.5f, %s", func.x(), func.compute(), func.toString());
 
-        SimulatedAnnealing.optimize(context, function, listner);
+        assertEquals(totalSteps, func.steps(), message);
 
-        assertTrue(listner.amount() <= context.variationPersitence);
+        logger.info(() -> message);
     }
 
     @Test
-    void earlyStopMinimizeTest() {
-        double noiseLevel = 1e-3;
-
+    void fixedStepsInverseSciExponentTest() {
         double initialTemperature = 10000;
-        double finalTemperature = 0.1;
-        double coolingRate = 0.01;
-        int steps = 150000;
-        long deadline = 300;
-        double variationThreshold = noiseLevel;
-        int variationPersitence = 5;
-        ProblemType problemType = ProblemType.MINIMIZE;
+        double finalTemperature   = 0.1;
+        double coolingRate        = 0.01;
+        int steps                 = 10;
+        long deadline             = 60000;
+        double variationThreshold = 1e-3;
+        int variationPersitence   = 200;
+        ProblemType problemType   = ProblemType.MINIMIZE;
 
-        WhiteNoiseFunction function = new WhiteNoiseFunction(noiseLevel);
+        InverseSciExponentFunction function = new InverseSciExponentFunction(variationThreshold, variationPersitence);
 
-        AnnealingContext context = new AnnealingContext(
-            initialTemperature, finalTemperature, coolingRate, steps, deadline, variationThreshold, variationPersitence, problemType);
+        // Run Simulated Annealing with the default context
+        InverseSciExponentFunction result = (InverseSciExponentFunction) SimulatedAnnealing.optimize(
+                new AnnealingContext(initialTemperature, finalTemperature, coolingRate, steps, deadline, variationThreshold, variationPersitence, problemType),
+                function,
+                null);
 
-        CountListner listner = new CountListner();
+        double y = result.compute();
 
-        SimulatedAnnealing.optimize(context, function, listner);
+        logger.info(() -> String.format("f(x) = %e, %s", y, result.toString()));
+        
+        assertTrue(result.steps() <= variationPersitence);
+        assertEquals(y, variationThreshold, 1e-15);
+    }
 
-        assertTrue(listner.amount() <= context.variationPersitence);
+    @Test
+    void timeWaitingInverseSciExponentTest() {
+        double initialTemperature = 10000;
+        double finalTemperature   = 0.000001;
+        double coolingRate        = 0.0001;
+        int steps                 = 500;
+        long deadline             = 1000;
+        double variationThreshold = -1;
+        int variationPersitence   = -1;
+        ProblemType problemType   = ProblemType.MINIMIZE;
+
+        AnnealingFunction function = new AnnealingFunction() {
+            @Override
+            public double compute() {
+                return 1.0;
+            }
+
+            @Override
+            public void reconfigure() {
+                // Not necessary
+            }
+
+            @Override
+            public void assign(AnnealingFunction f) {
+                // Not necessary
+            }
+
+            @Override
+            public boolean isValid() {
+                return true;
+            }
+
+            @Override
+            public AnnealingFunction copy() {
+                return this;
+            }
+        };
+
+        long start = System.currentTimeMillis();
+        
+        AnnealingFunction result = (AnnealingFunction) SimulatedAnnealing.optimize(
+                new AnnealingContext(initialTemperature, finalTemperature, coolingRate, steps, deadline, variationThreshold, variationPersitence, problemType),
+                function,
+                null);
+
+        long finish = System.currentTimeMillis();
+        long timePass = finish - start;
+        double y = result.compute();
+
+        logger.info(() -> String.format("time: %d, f(x) = %.5f, %s", timePass, y, result.toString()));
+        
+        assertEquals(deadline, timePass, 100L);
     }
 }
