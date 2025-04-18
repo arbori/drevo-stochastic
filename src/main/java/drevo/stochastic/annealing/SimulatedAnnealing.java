@@ -227,6 +227,11 @@ public class SimulatedAnnealing {
         for (int currentStep = sa.ctx.steps(); !sa.earlyStop && currentStep > 0; currentStep--) {
             sa.last.reconfigure();
 
+            // The choose a better solution must be do with a valid solution candidate.
+            if(!sa.last.isValid()) {
+                continue;
+            }
+
             // Calculate the current energy
             sa.finalEnergy = sa.ctx.problemType().valueOf() * sa.last.compute();
 
@@ -237,7 +242,7 @@ public class SimulatedAnnealing {
             sa.probability = Math.exp((-1 * sa.delta) / (BOLTZMANN_CONSTANT * temperature));
 
             // Check whether to accept the new configuration
-            if ((sa.delta <= 0 || sa.rand.nextDouble() < sa.probability) && sa.last.isValid()) {
+            if ((sa.delta <= 0 || sa.rand.nextDouble() < sa.probability)) {
                 if((sa.ctx.problemType == ProblemType.MAXIMIZE && sa.bestValue < sa.ctx.problemType().valueOf() * sa.finalEnergy) || (sa.ctx.problemType == ProblemType.MINIMIZE && sa.bestValue > sa.ctx.problemType().valueOf() * sa.finalEnergy)) {
                     sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Accepted configuration"));
 
