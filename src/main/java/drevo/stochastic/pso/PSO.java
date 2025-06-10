@@ -103,39 +103,7 @@ public class PSO<T extends Particle<T>> {
         for (int iteration = 0; iteration < maxIterations; iteration++) {
             double lastGlobalBestFitness = globalBestFitness;
 
-            // Parallel processing of particles
-            IntStream.range(0, swarm.size()).parallel().forEach(index -> {
-                T particle = swarm.get(index);
-                
-                // Update velocity
-                updateVelocity(particle);
-                
-                // Update position
-                particle.updatePosition();
-                
-                // Evaluate new position
-                double currentFitness = fitnessFunction.apply(particle);
-                
-                // Update personal best if needed
-                if (currentFitness < particle.getPersonalBestFitness()) {
-                    particle.setPersonalBest(particle);
-                    particle.setPersonalBestFitness(currentFitness);
-                    
-                    // Update global best if needed
-                    if (currentFitness < globalBestFitness) {
-                        try {
-                            globalBestMutex.acquire();
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        }
-
-                        globalBestFitness = currentFitness;
-                        globalBest.assing(particle);
-
-                        globalBestMutex.release();
-                    }
-                }
-            });
+            particlesDynamic();
             
             // Optional: Print progress
             if (globalBestFitness - lastGlobalBestFitness < 0.0) {
@@ -154,6 +122,45 @@ public class PSO<T extends Particle<T>> {
         } catch (InterruptedException e) {
             listenerThread.interrupt();
         }
+    }
+
+    /**
+     * Updates the particles' velocities and positions, evaluates their fitness, and updates personal and global bests.
+     */
+    private void particlesDynamic() {
+        // Parallel processing of particles
+        IntStream.range(0, swarm.size()).parallel().forEach(index -> {
+            T particle = swarm.get(index);
+            
+            // Update velocity
+            updateVelocity(particle);
+            
+            // Update position
+            particle.updatePosition();
+            
+            // Evaluate new position
+            double currentFitness = fitnessFunction.apply(particle);
+            
+            // Update personal best if needed
+            if (currentFitness < particle.getPersonalBestFitness()) {
+                particle.setPersonalBest(particle);
+                particle.setPersonalBestFitness(currentFitness);
+                
+                // Update global best if needed
+                if (currentFitness < globalBestFitness) {
+                    try {
+                        globalBestMutex.acquire();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    globalBestFitness = currentFitness;
+                    globalBest.assing(particle);
+
+                    globalBestMutex.release();
+                }
+            }
+        });
     }
 
     /**
