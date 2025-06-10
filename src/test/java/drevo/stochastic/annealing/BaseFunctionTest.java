@@ -17,7 +17,6 @@
 package drevo.stochastic.annealing;
 
 import drevo.stochastic.ProblemType;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
 import drevo.stochastic.state.StateChangeHandler;
 
 public abstract class BaseFunctionTest {

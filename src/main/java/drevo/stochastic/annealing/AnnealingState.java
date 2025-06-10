@@ -14,9 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package drevo.stochastic.annealing.monitoring;
+package drevo.stochastic.annealing;
 
-import drevo.stochastic.annealing.AnnealingContext;
 import drevo.stochastic.state.StateChange;
 
 public record AnnealingState(

@@ -19,7 +19,6 @@ package drevo.stochastic.annealing;
 import java.util.concurrent.ThreadLocalRandom;
 
 import drevo.stochastic.ProblemType;
-import drevo.stochastic.annealing.monitoring.AnnealingState;
 import drevo.stochastic.state.StateChangeListener;
 import drevo.stochastic.state.StateChangeHandler;
 

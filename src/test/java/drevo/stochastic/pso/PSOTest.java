@@ -1,6 +1,25 @@
+/*
+ * Copyright (C) 2024 Marcelo Arbori Nogueira - marcelo.arbori@gmail.com
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 package drevo.stochastic.pso;
 
 import org.junit.jupiter.api.Test;
+
+import drevo.stochastic.state.StateChangeHandler;
+
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
@@ -11,6 +30,12 @@ import java.util.function.Function;
 class PSOTest {
     private List<DoubleParticle> swarm;
     private Function<DoubleParticle, Double> sphereFunction;
+
+    private StateChangeHandler stateChangeHandler = state -> {
+        // Handle state changes if needed, e.g., logging
+        System.out.println("State changed: " + state);
+    };
+
     private final Random rand = new Random();
     
     @BeforeEach
@@ -32,8 +57,7 @@ class PSOTest {
 
     @Test
     void testPSOOptimization() {
-        PSOContext<DoubleParticle> context = new PSOContext<>(
-            sphereFunction,
+        PSOContext context = new PSOContext(
             1000,    // max iterations
             0.729,    // inertia weight
             1.49445,  // cognitive weight
@@ -41,7 +65,7 @@ class PSOTest {
         );
 
         // Create PSO instance
-        PSO<DoubleParticle> pso = new PSO<>(swarm, context);
+        PSO<DoubleParticle> pso = new PSO<>(context, sphereFunction, stateChangeHandler, swarm);
         
         // Run optimization
         pso.optimize();
@@ -79,8 +103,7 @@ class PSOTest {
 
     @Test
     void testPSOWithZeroIterations() {
-        assertThrows(IllegalArgumentException.class, () -> new PSOContext<>(
-            sphereFunction,
+        assertThrows(IllegalArgumentException.class, () -> new PSOContext(
             0,       // No iterations
             0.729,
             1.49445,
@@ -95,16 +118,15 @@ class PSOTest {
         double[] velocity = {0.0, 0.0};
         singleSwarm.add(new DoubleParticle(position, velocity));
         
-        PSOContext<DoubleParticle> context = new PSOContext<>(
-            sphereFunction,
+        PSOContext context = new PSOContext(
             100,
             0.729,
             1.49445,
             1.49445
         );
 
-        PSO<DoubleParticle> pso = new PSO<>(singleSwarm, context);
-        
+        PSO<DoubleParticle> pso = new PSO<>(context, sphereFunction, stateChangeHandler, swarm);
+
         pso.optimize();
         
         // With one particle, it should at least find personal best
