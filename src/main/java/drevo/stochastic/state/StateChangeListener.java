@@ -14,24 +14,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package drevo.stochastic.annealing.monitoring;
+package drevo.stochastic.state;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnnealingListener implements Runnable {
-    private List<AnnealingState> states = new ArrayList<>();
+/**
+ * A listener that processes state changes in a separate thread.
+ * It collects state changes and passes them to a handler for processing.
+ */
+public class StateChangeListener implements Runnable {
+    private List<StateChange> states = new ArrayList<>();
     private boolean[] finish = { false };
     private final StateChangeHandler handler;
     
-    public AnnealingListener(StateChangeHandler handler) {
+    public StateChangeListener(StateChangeHandler handler) {
         this.handler = handler;
     }
 
     @Override
     public void run() {
         while (true) {
-            AnnealingState state = null;
+            StateChange state = null;
 
             synchronized (finish) {
                 synchronized (states) {
@@ -50,13 +54,22 @@ public class AnnealingListener implements Runnable {
             }
         }
     }
-    
-    public void onStateChange(AnnealingState state) {
+   
+    /**
+     * Adds a state change to the listener for processing.
+     * 
+     * @param state The state change to be processed.
+     */
+    public void onStateChange(StateChange state) {
         synchronized (states) {        
             states.add(state);
         }
     }
     
+    /**
+     * Signals that the listener should finish processing.
+     * This will cause the run method to exit when there are no more states to process.
+     */
     public void finish() {
         synchronized (finish) {
             finish[0] = true;

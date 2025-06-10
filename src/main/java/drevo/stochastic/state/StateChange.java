@@ -14,21 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package drevo.stochastic.annealing.monitoring;
+package drevo.stochastic.state;
 
-import drevo.stochastic.annealing.AnnealingContext;
-import drevo.stochastic.state.StateChange;
+public interface StateChange {
 
-public record AnnealingState(
-    double temperature, 
-    double initialEnergy, 
-    double finalEnergy,
-    double delta,
-    double probability,
-    double bestValue,
-    AnnealingContext context,
-    int currentStep,
-    boolean accepted,
-    String message) implements StateChange 
-{
 }

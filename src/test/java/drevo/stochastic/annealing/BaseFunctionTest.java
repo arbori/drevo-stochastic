@@ -17,7 +17,8 @@
 package drevo.stochastic.annealing;
 
 import drevo.stochastic.ProblemType;
-import drevo.stochastic.annealing.monitoring.StateChangeHandler;
+import drevo.stochastic.annealing.monitoring.AnnealingState;
+import drevo.stochastic.state.StateChangeHandler;
 
 public abstract class BaseFunctionTest {
     // Configure Annealing Context for minimize
@@ -35,16 +36,20 @@ public abstract class BaseFunctionTest {
     AnnealingContext maximizeDefaultAnnealingContext = new AnnealingContext(ProblemType.MAXIMIZE);
 
     StateChangeHandler handler = state -> {
-        if (state.currentStep() == 0 && state.temperature() == 0.0) {
-            System.out.println(state.message());
-        } else {
-            System.out.print(state.temperature());
-            System.out.print("\t");
-            System.out.print(state.currentStep());
-            System.out.print("\t");
-            System.out.print(state.context().problemType().valueOf() * state.initialEnergy());
-            System.out.print("\t");
-            System.out.println(state.context().problemType().valueOf() * state.finalEnergy());
-        }
+        if(state instanceof AnnealingState) {
+            AnnealingState annealingState = (AnnealingState) state;
+            
+            if (annealingState.currentStep() == 0 && annealingState.temperature() == 0.0) {
+                System.out.println(annealingState.message());
+            } else {
+                System.out.print(annealingState.temperature());
+                System.out.print("\t");
+                System.out.print(annealingState.currentStep());
+                System.out.print("\t");
+                System.out.print(annealingState.context().problemType().valueOf() * annealingState.initialEnergy());
+                System.out.print("\t");
+                System.out.println(annealingState.context().problemType().valueOf() * annealingState.finalEnergy());
+            }
+        } 
     };
 }

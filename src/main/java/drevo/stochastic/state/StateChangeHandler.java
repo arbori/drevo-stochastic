@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package drevo.stochastic.annealing.monitoring;
+package drevo.stochastic.state;
 
 @FunctionalInterface
 public interface StateChangeHandler {
-    void handleStateChange(AnnealingState state);
+    void handleStateChange(StateChange state);
 }

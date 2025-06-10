@@ -19,10 +19,9 @@ package drevo.stochastic.annealing;
 import java.util.concurrent.ThreadLocalRandom;
 
 import drevo.stochastic.ProblemType;
-
-import drevo.stochastic.annealing.monitoring.AnnealingListener;
 import drevo.stochastic.annealing.monitoring.AnnealingState;
-import drevo.stochastic.annealing.monitoring.StateChangeHandler;
+import drevo.stochastic.state.StateChangeListener;
+import drevo.stochastic.state.StateChangeHandler;
 
 /**
  * This class is an implementation of Simulated Annealing Algorithm that simulate a cooling process as a metaphor 
@@ -100,7 +99,7 @@ public class SimulatedAnnealing {
     private final AnnealingContext ctx;
     private final AnnealingFunction function;
 
-    private final AnnealingListener listener;
+    private final StateChangeListener listener;
     private final Thread listenerThread;
 
     private final ThreadLocalRandom rand;
@@ -130,7 +129,7 @@ public class SimulatedAnnealing {
         this.ctx = ctx;
         this.function = function;
 
-        listener = new AnnealingListener(handler);
+        listener = new StateChangeListener(handler);
         
         listenerThread = new Thread(listener);
         listenerThread.start();
