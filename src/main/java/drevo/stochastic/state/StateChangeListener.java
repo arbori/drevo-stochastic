@@ -18,6 +18,7 @@ package drevo.stochastic.state;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A listener that processes state changes in a separate thread.
@@ -25,7 +26,7 @@ import java.util.List;
  */
 public class StateChangeListener implements Runnable {
     private List<StateChange> states = new ArrayList<>();
-    private boolean[] finish = { false };
+    private final AtomicBoolean finish = new AtomicBoolean(false);
     private final StateChangeHandler handler;
     
     public StateChangeListener(StateChangeHandler handler) {
@@ -39,7 +40,7 @@ public class StateChangeListener implements Runnable {
 
             synchronized (finish) {
                 synchronized (states) {
-                    if (states.isEmpty() && finish[0]) {
+                    if (states.isEmpty() && finish.get()) {
                         return;
                     }
 
@@ -62,7 +63,9 @@ public class StateChangeListener implements Runnable {
      */
     public void onStateChange(StateChange state) {
         synchronized (states) {        
-            states.add(state);
+            if(!finish.get()) {
+                states.add(state);
+            }
         }
     }
     
@@ -72,7 +75,7 @@ public class StateChangeListener implements Runnable {
      */
     public void finish() {
         synchronized (finish) {
-            finish[0] = true;
+            finish.set(true);
         }
     }
 }

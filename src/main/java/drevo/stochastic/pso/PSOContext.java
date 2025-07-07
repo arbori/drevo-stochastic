@@ -16,12 +16,18 @@
  */
 package drevo.stochastic.pso;
 
-public record PSOContext(
-    int maxIterations,
-    double inertiaWeight,
-    double cognitiveWeight,
-    double socialWeight
-) {
+/**
+ * Represents the context for a Particle Swarm Optimization (PSO) algorithm.
+ * This record encapsulates the parameters required to configure the PSO algorithm.
+ */
+public class PSOContext {
+    final int maxIterations; // Maximum number of iterations for the PSO algorithm
+    final double inertiaWeight; // Weight applied to the particle's previous velocity
+    final double cognitiveWeight; // Weight applied to the particle's personal best position
+    final double socialWeight; // Weight applied to the global best position of the swarm
+    final double variationThreshold; // Threshold for variation in particle positions to trigger early stopping
+    final long variationPersitence; // Number of iterations a variation must persist to trigger early stopping
+
     /**
      * Creates a new PSOContext with the specified parameters.
      *
@@ -30,12 +36,31 @@ public record PSOContext(
      * @param cognitiveWeight the weight applied to the particle's personal best position
      * @param socialWeight the weight applied to the global best position of the swarm
      */
-    public PSOContext {
+    public PSOContext(int maxIterations, double inertiaWeight, double cognitiveWeight, double socialWeight, double variationThreshold, long variationPersitence) {
         if (maxIterations <= 0) {
             throw new IllegalArgumentException("maxIterations must be greater than 0");
         }
         if (inertiaWeight < 0 || cognitiveWeight < 0 || socialWeight < 0) {
             throw new IllegalArgumentException("Weights must be non-negative");
         }
+
+        this.maxIterations = maxIterations;
+        this.inertiaWeight = inertiaWeight;
+        this.cognitiveWeight = cognitiveWeight;
+        this.socialWeight = socialWeight;
+        this.variationThreshold = variationThreshold;
+        this.variationPersitence = variationPersitence;
+    }
+
+    /**
+     * Creates a new PSOContext with the specified parameters.
+     *
+     * @param maxIterations the maximum number of iterations for the PSO algorithm
+     * @param inertiaWeight the weight applied to the particle's previous velocity
+     * @param cognitiveWeight the weight applied to the particle's personal best position
+     * @param socialWeight the weight applied to the global best position of the swarm
+     */
+    public PSOContext(int maxIterations, double inertiaWeight, double cognitiveWeight, double socialWeight) {
+        this(maxIterations, inertiaWeight, cognitiveWeight, socialWeight, 0.0, Long.MAX_VALUE);
     }
 }

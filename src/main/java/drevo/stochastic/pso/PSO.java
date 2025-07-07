@@ -27,11 +27,7 @@ import drevo.stochastic.state.StateChangeHandler;
 import drevo.stochastic.state.StateChangeListener;
 
 public class PSO<T extends Particle<T>> {
-    // Context data.
-    private final int maxIterations;
-    private final double inertiaWeight;
-    private final double cognitiveWeight;
-    private final double socialWeight;
+    private final PSOContext context;
 
     private final Function<T, Double> fitnessFunction;
     private final StateChangeListener listener;
@@ -42,7 +38,10 @@ public class PSO<T extends Particle<T>> {
     
     private T globalBest;
     private double globalBestFitness = Double.MAX_VALUE;
+    private double lastGlobalBestFitness = Double.MAX_VALUE;
     private Semaphore globalBestMutex = new Semaphore(1, true);
+
+    private long persitenceCount = 0; // Count of iterations with no improvement
 
     /**
      * Constructs a PSO instance with the specified context, fitness function, state change handler, and initial swarm.
@@ -53,11 +52,23 @@ public class PSO<T extends Particle<T>> {
      * @param initialSwarm the initial swarm of particles
      */
     public PSO(PSOContext context, Function<T, Double> fitnessFunction, StateChangeHandler handler, List<T> initialSwarm) {
-        this.maxIterations = context.maxIterations();
-        this.inertiaWeight = context.inertiaWeight();
-        this.cognitiveWeight = context.cognitiveWeight();
-        this.socialWeight = context.socialWeight();
+        if (context == null) {
+            throw new IllegalArgumentException("PSOContext cannot be null");
+        }
+        if (fitnessFunction == null) {
+            throw new IllegalArgumentException("Fitness function cannot be null");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("StateChangeHandler cannot be null");
+        }
+        if (initialSwarm == null || initialSwarm.isEmpty()) {
+            throw new IllegalArgumentException("Initial swarm cannot be null or empty");
+        }
+        if (initialSwarm.stream().anyMatch(p -> p == null)) {
+            throw new IllegalArgumentException("Initial swarm cannot contain null particles");
+        }
 
+        this.context = context;
         this.fitnessFunction = fitnessFunction;
         this.listener = new StateChangeListener(handler);
         this.swarm = new ArrayList<>(initialSwarm);
@@ -100,17 +111,19 @@ public class PSO<T extends Particle<T>> {
         listener.onStateChange(new PSOState(0, 0.0, 0.0, 
             String.format("Initialize swarm with %.5f global best value.", globalBestFitness)));
 
-        for (int iteration = 0; iteration < maxIterations; iteration++) {
-            double lastGlobalBestFitness = globalBestFitness;
+        for (int iteration = 0; iteration < context.maxIterations; iteration++) {
+            lastGlobalBestFitness = globalBestFitness;
 
             particlesDynamic();
             
-            // Optional: Print progress
-            if (globalBestFitness - lastGlobalBestFitness < 0.0) {
-                double improvement = (globalBestFitness / lastGlobalBestFitness) - 1.0;
-
+            listener.onStateChange(new PSOState(iteration, globalBestFitness, lastGlobalBestFitness, 
+                String.format("Improvement: %f%%", 100*((globalBestFitness / lastGlobalBestFitness) - 1.0))));
+            
+            if (checkStopEarly()) {
                 listener.onStateChange(new PSOState(iteration, globalBestFitness, lastGlobalBestFitness, 
-                    String.format("Improvement: %f%%", 100.0*improvement)));
+                    "Early stop due to variation threshold"));
+
+                break;
             }
         }
 
@@ -175,14 +188,14 @@ public class PSO<T extends Particle<T>> {
         
         // Calculate cognitive and social components
         double[] cognitiveComponent = particle.calculateComponent(
-            personalBest, currentPosition, cognitiveWeight, random);
+            personalBest, currentPosition, context.cognitiveWeight, random);
         double[] socialComponent = particle.calculateComponent(
-            globalBest, currentPosition, socialWeight, random);
+            globalBest, currentPosition, context.socialWeight, random);
         
         // Update velocity for each dimension
         double[] newVelocity = new double[particle.getVelocity().length];
         for (int i = 0; i < newVelocity.length; i++) {
-            newVelocity[i] = inertiaWeight * particle.getVelocity()[i] 
+            newVelocity[i] = context.inertiaWeight * particle.getVelocity()[i] 
                           + cognitiveComponent[i] 
                           + socialComponent[i];
         }
@@ -197,4 +210,33 @@ public class PSO<T extends Particle<T>> {
     public double getGlobalBestFitness() {
         return globalBestFitness;
     }
+
+        /**
+     * Check is stop early condition was achived and set the flag properly.
+     * 
+     * @param sa Hinstance of SimulatedAnnealing.
+     * @param temperature Temperature of the process.
+     * @param currentStep Current step to try a better configuration
+     */
+    private boolean checkStopEarly() {
+        // Compute variation take as reference the best value.
+        double variation = Math.abs(this.globalBestFitness - this.lastGlobalBestFitness);
+
+        // The early stop condition can be true, if varation is less then threshold...
+        if (variation < context.variationThreshold) {
+            persitenceCount++;
+
+            // ... and the time of it is higher then the limit, 
+            // the amount of time this variation still below the threshold.
+            return (persitenceCount >= context.variationPersitence);
+        }
+        // It is important restart count for variation because it is a stochastic
+        // process and variation can be above or below threshold until stabilize below.. 
+        else {
+            persitenceCount = 0; // Reset persistence count if variation is above threshold
+        }
+
+        return false;
+    }
+
 }

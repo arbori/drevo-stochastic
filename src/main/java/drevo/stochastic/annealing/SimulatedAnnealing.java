@@ -141,7 +141,7 @@ public class SimulatedAnnealing {
         finalEnergy = 0;
         delta = 0;
         probability = 0;
-        bestValue = best.compute();
+        bestValue = ctx.problemType.valueOf() * best.compute();
         persitenceCount = 0;
         endTime = 0;
         earlyStop = false;
@@ -199,17 +199,8 @@ public class SimulatedAnnealing {
             sa.listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, sa.bestValue, sa.ctx, 0, false, 
                 "The founded solution in cooling process is invalid."));
         }
-
-        sa.listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, sa.bestValue, sa.ctx, 0, false, 
-            String.format("Finish with value: %f", sa.best.compute())));
-
-        sa.listener.finish();
-
-        try {
-            sa.listenerThread.join();
-        } catch (InterruptedException e) {
-            sa.listenerThread.interrupt();
-        }
+        
+        finish(sa);
 
         return sa.best;
     }
@@ -241,10 +232,15 @@ public class SimulatedAnnealing {
 
             // Check whether to accept the new configuration
             if ((sa.delta <= 0 || sa.rand.nextDouble() < sa.probability)) {
-                if((sa.ctx.problemType == ProblemType.MAXIMIZE && sa.bestValue < sa.ctx.problemType().valueOf() * sa.finalEnergy) || (sa.ctx.problemType == ProblemType.MINIMIZE && sa.bestValue > sa.ctx.problemType().valueOf() * sa.finalEnergy)) {
-                    sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Accepted configuration"));
+                // The strange thing about comparation (< and >), it is because when the problemType is MAXIMIZE,
+                // the bestValue will be negative and need changes if be higher than the finalEnergy,
+                // and when the problemType is MINIMIZE, the bestValue will be positive and need changes if be lower than the finalEnergy.
+                // So, the comparation is done with the value of problemType, that is -1 for MAXIMIZE and 1 for MINIMIZE.
+                // The reason is because the nature of Simulated Annealing allways try to find the minimal solution. 
+                if((sa.ctx.problemType == ProblemType.MAXIMIZE && sa.bestValue > sa.finalEnergy) || (sa.ctx.problemType == ProblemType.MINIMIZE && sa.bestValue < sa.finalEnergy)) {
+                    sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.ctx.problemType.valueOf() * sa.bestValue, sa.ctx, currentStep, true, "Accepted configuration"));
 
-                    sa.bestValue = sa.ctx.problemType().valueOf() * sa.finalEnergy;
+                    sa.bestValue = sa.finalEnergy;
                     sa.best.assign(sa.last);
                 }
 
@@ -271,7 +267,7 @@ public class SimulatedAnnealing {
             sa.persitenceCount++;
 
             // ... and the time of it is higher then the limit, 
-            /// the amount of time this variation still below the threshold.
+            // the amount of time this variation still below the threshold.
             if (sa.persitenceCount >= sa.ctx.variationPersitence) {
                 sa.earlyStop = true;
                 sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Early stop due to variation threshold"));
@@ -288,6 +284,20 @@ public class SimulatedAnnealing {
         if (now >= sa.endTime) {
             sa.earlyStop = true;
             sa.listener.onStateChange(new AnnealingState(temperature, sa.initialEnergy, sa.finalEnergy, sa.delta, sa.probability, sa.bestValue, sa.ctx, currentStep, true, "Early stop due to time limit"));
+        }
+    }
+
+    private static void finish(SimulatedAnnealing sa) {
+        // Notify the listener that the process is finished
+        sa.listener.onStateChange(new AnnealingState(0, 0, 0, 0, 0, sa.bestValue, sa.ctx, 0, false, 
+            String.format("Finising cooling process with best value: %.5f", sa.bestValue)));
+
+        sa.listener.finish();
+
+        try {
+            sa.listenerThread.join();
+        } catch (InterruptedException e) {
+            sa.listenerThread.interrupt();
         }
     }
 }

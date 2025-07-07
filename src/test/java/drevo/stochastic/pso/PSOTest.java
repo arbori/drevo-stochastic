@@ -61,7 +61,9 @@ class PSOTest {
             1000,    // max iterations
             0.729,    // inertia weight
             1.49445,  // cognitive weight
-            1.49445   // social weight
+            1.49445,   // social weight
+            0.00001, // convergence threshold
+            100 // How many iterations with same best fitness before stopping
         );
 
         // Create PSO instance
